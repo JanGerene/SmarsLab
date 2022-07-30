@@ -2,8 +2,8 @@ import unittest
 
 import yaml
 
-import smarslab.smars as sl
-import smarslab.smars_lab as smars_lab
+import smars as sl
+import smars_lab as smars_lab
 
 class test_smars_robot(unittest.TestCase):
     def setUp(self):
