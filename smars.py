@@ -7,13 +7,14 @@ from ast import Slice
 from re import S
 import time
 import logging
-from webbrowser import get
 
 import yaml
 
 import Adafruit_PCA9685
 
 SLEEP_COUNT = 0.05  # time between pwm operations
+
+logging.basicConfig(filename='smars.log', encoding='utf-8', level=logging.DEBUG)
 
 try:
     pwm = Adafruit_PCA9685.PCA9685()
