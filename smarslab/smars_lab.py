@@ -15,8 +15,8 @@ from flask import Flask, render_template, request, jsonify, flash
 from markupsafe import Markup
 from flask_bootstrap import Bootstrap
 
-from smars import SmarsRobot
-import smars
+from smarslab.smars import SmarsRobot
+import smarslab.smars as smars
 
 
 dictConfig({

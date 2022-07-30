@@ -2,14 +2,15 @@ import unittest
 
 import yaml
 
-import smars as sl
-import smars_lab
+import smarslab.smars as sl
+import smarslab.smars_lab as smars_lab
 
 class test_smars_robot(unittest.TestCase):
     def setUp(self):
         with open('config.yaml','r') as file:
             self.config = yaml.safe_load(file)
-
+            
+            
     def test_create_robot(self):
         r = sl.SmarsRobot()
         self.assertEqual(len(r.legs), 4)
