@@ -1,42 +1,42 @@
 feet:
-- name: "LEFT_FOOT_FRONT"
+- name: "LEFT_FRONT"
   channel: 1
   minangle: 50
   maxangle: 150
   invert: false
-- name: "LEFT_FOOT_BACK"
+- name: "LEFT_BACK"
   channel: 3
   minangle: 50
   maxangle: 150
   invert: true
-- name: "RIGHT_FOOT_FRONT"
+- name: "RIGHT_FRONT"
   channel: 7
   minangle: 50
   maxangle: 150
   invert: true
-- name: "RIGHT_FOOT_BACK"
+- name: "RIGHT_BACK"
   channel: 5
   minangle: 50
   maxangle: 150
   invert: false
   
 legs:
-- name: "LEFT_LEG_FRONT"
+- name: "LEFT_FRONT"
   channel: 0
   minangle: 9
   maxangle: 90
   invert: true
-- name: "LEFT_LEG_BACK"
+- name: "LEFT_BACK"
   channel: 2
   minangle: 90
   maxangle: 180
   invert: false
-- name: "RIGHT_LEG_FRONT"
+- name: "RIGHT_FRONT"
   channel: 6
   minangle: 90
   maxangle: 180
   invert: false
-- name: "RIGHT_LEG_BACK"
+- name: "RIGHT_BACK"
   channel: 4
   minangle: 9
   maxangle: 90

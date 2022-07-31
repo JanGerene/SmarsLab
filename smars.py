@@ -3,8 +3,6 @@ provides functions and classes for the SMARS quad robot
 based on Kevin McAleers work 
 """
 
-from ast import Slice
-from re import S
 import time
 import logging
 
@@ -38,14 +36,14 @@ except ValueError as error:
     logging.error(log_string)
 
 
-class Leg:
+class Limb:
     _angle = 0
     min_pulse = 150
     max_pulse = 600
 
 
     def __init__(self, name: str, channel: int, minangle: int, maxangle: int, invert: bool):
-        self.name = name
+        self._name = name
         self._channel = channel
         self._minangle = minangle
         self._maxangle = maxangle
@@ -61,6 +59,21 @@ class Leg:
             self.swing_angle = (self._maxangle - self._minangle) / 2
         self.current_angle = self.bodyangle
         self.angle = self.bodyangle
+
+    
+    @property 
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value: str):
+        names = [
+            'LEFT_FRONT', 'LEFT_BACK', 'RIGHT_FRONT', 'RIGHT_BACK'
+        ]
+        if not value in names:
+            raise ValueError('not a valid leg name')
+        self._name = value
+
 
     @property
     def angle(self):
@@ -140,12 +153,14 @@ class Leg:
             raise TypeError("invert must be bool")
         self._invert = value
 
+
     def default(self):
         """
         set the limb to the default angle
         """
         self.angle = self.maxangle - self.minangle
         self.current_angle = self.maxangle - self.minangle
+
 
     def body(self):
         """
@@ -169,7 +184,6 @@ class Leg:
         self.angle = self.swing_angle = self.current_angle = swing_angle
     
 
-
     def stretch(self):
         """
         sets limb to stretch position
@@ -181,16 +195,17 @@ class Leg:
         self.str
         
 
+class Leg(Limb):
     def tick(self):
         """
         each tick received changes the current angle, unless limit is reached which returns true
         """
-        if self.name in ['LEFT_LEG_FRONT', 'LEFT_LEG_BACK']:
+        if self.name in ['LEFT_FRONT', 'LEFT_BACK']:
             if self.current_angle <= self.maxangle:
                 self.current_angle += 2
                 self.angle = self.current_angle
                 return False
-        if self.name in ['RIGHT_LEG_FRONT', 'RIGHT_LEG_BACK']:
+        if self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
             if self.current_angle >= self.minangle:
                 self.current_angle -= 2
                 self.angle = self.current_angle
@@ -199,12 +214,12 @@ class Leg:
 
 
     def untick(self):
-        if self.name in ['RIGHT_LEG_BACK', 'RIGHT_LEG_FRONT']:
+        if self.name in ['RIGHT_BACK', 'RIGHT_FRONT']:
             if self.current_angle <= self.maxangle:
                 self.current_angle += 2
                 self.angle = self.current_angle
                 return False
-        if self.name in ['LEFT_LEG_BACK', 'LEFT_LEG_FRONT']:
+        if self.name in ['LEFT_BACK', 'LEFT_FRONT']:
             if self.current_angle >= self.minangle:
                 self.current_angle -= 2
                 self.angle = self.current_angle
@@ -212,7 +227,7 @@ class Leg:
         return True
        
 
-
+class Foot(Limb):
     def down(self):
         """
         lowers limb to max angle
@@ -240,25 +255,31 @@ class SmarsRobot():
     def __init__(self):
         with open('config.yaml','r') as file:
             config = yaml.safe_load(file)
-        self.feet = [Leg]
+        self.feet = [Foot]
         limbs = config['feet']
         for limb in limbs:
-            self.feet.append(Leg(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
+            self.feet.append(Foot(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
         self.legs = [Leg]
         limbs = config['legs']
         for limb in limbs:
             self.legs.append(Leg(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
 
+
     def get_leg(self, name:str)->Leg:
         for leg in self.legs:
             if leg.name == name:
-                print (leg.name)
                 return leg
+
+
+    def get_foot(self, name:str)->Foot:
+        for foot in self.feet:
+            if foot.name == name:
+                return foot
 
 
     def default(self):
         """
-        set the legs to the default position (90°)
+        set the limbs to the default position (90°)
         """
         for limb in self.legs:
             limb.default()
@@ -273,12 +294,14 @@ class SmarsRobot():
         for foot in self.feet:
             foot.down()
 
+
     def stand(self):
         """
         set each foot to up posistion
         """
         for foot in self.feet:
             foot.up()
+
 
 
     def swing(self):
@@ -294,6 +317,7 @@ class SmarsRobot():
             time.sleep(SLEEP_COUNT)
 
 
+
     def walkforward(self, steps: int=None):
         """
         walk forward number of steps.
@@ -303,10 +327,10 @@ class SmarsRobot():
             steps = 1
 
         self.sit()
-        self.get_leg('LEFT_LEG_FRONT').body()
-        self.get_leg('LEFT_LEG_BACK').body()
-        self.get_leg('RIGHT_LEG_FRONT').swing()
-        self.get_leg('RIGHT_LEG_BACK').swing()
+        self.get_leg('LEFT_FRONT').body()
+        self.get_leg('LEFT_BACK').body()
+        self.get_leg('RIGHT_FRONT').swing()
+        self.get_leg('RIGHT_BACK').swing()
         self.stand()
 
         for _ in range(steps):
@@ -317,12 +341,12 @@ class SmarsRobot():
                     self.feet[index].down()
                     time.sleep(SLEEP_COUNT)
                     if not leg.invert:
-                        if leg.name == "RIGHT_LEG_FRONT":
+                        if leg.name == "RIGHT_FRONT":
                             leg.stretch()
                         else:
                             leg.body()
                     else:
-                        if leg.name == "RIGHT_LEG_BACK":
+                        if leg.name == "RIGHT_BACK":
                             leg.body()
                         else:
                             leg.stretch()
@@ -340,10 +364,10 @@ class SmarsRobot():
             steps = 1
 
         self.sit()
-        self.get_leg('LEFT_LEG_FRONT').body()
-        self.get_leg('LEFT_LEG_BACK').body()
-        self.get_leg('RIGHT_LEG_FRONT').swing()
-        self.get_leg('RIGHT_LEG_BACK').swing()
+        self.get_leg('LEFT_FRONT').body()
+        self.get_leg('LEFT_BACK').body()
+        self.get_leg('RIGHT_FRONT').swing()
+        self.get_leg('RIGHT_BACK').swing()
         self.stand()
 
         for _ in range(steps):
@@ -354,12 +378,12 @@ class SmarsRobot():
                     self.feet[index].down()
                     time.sleep(SLEEP_COUNT)
                     if not leg.invert:
-                        if leg.name == "LEFT_LEG_BACK":
+                        if leg.name == "LEFT_BACK":
                             leg.stretch()
                         else:
                             leg.body()
                     else:
-                        if leg.name == "LEFT_LEG_FRONT":
+                        if leg.name == "LEFT_FRONT":
                             leg.body()
                         else:
                             leg.stretch()
@@ -370,20 +394,20 @@ class SmarsRobot():
 
     def turnleft(self):
         self.swing()
-        self.get_leg('LEFT_LEG_FRONT').stretch()
-        self.get_leg('LEFT_LEG_BACK').body()
-        self.get_leg('RIGHT_LEG_FRONT').body()
-        self.get_leg('RIGHT_LEG_BACK').stretch()       
+        self.get_leg('LEFT_FRONT').stretch()
+        self.get_leg('LEFT_BACK').body()
+        self.get_leg('RIGHT_FRONT').body()
+        self.get_leg('RIGHT_BACK').stretch()       
         time.sleep(SLEEP_COUNT)
         self.swing()
 
 
     def turnright(self):
         self.swing()
-        self.get_leg('RIGHT_LEG_FRONT').stretch()
-        self.get_leg('RIGHT_LEG_BACK').body()
-        self.get_leg('LEFT_LEG_FRONT').body()
-        self.get_leg('LEFT_LEG_BACK').stretch()       
+        self.get_leg('RIGHT_FRONT').stretch()
+        self.get_leg('RIGHT_BACK').body()
+        self.get_leg('LEFT_FRONT').body()
+        self.get_leg('LEFT_BACK').stretch()       
         time.sleep(SLEEP_COUNT)
         self.swing()       
 
@@ -396,18 +420,18 @@ class SmarsRobot():
             count = 1
 
         self.sit()
-        self.get_leg("LEFT_FOOT_BACK").up()
-        self.get_leg('RIGHT_FOOT_BACK').up()
+        self.get_foot("LEFT_BACK").up()
+        self.get_foot('RIGHT_BACK').up()
         time.sleep(SLEEP_COUNT)
 
-        left_leg_back = self.get_leg('LEFT_LEG_BACK')
-        right_leg_back = self.get_leg('RIGHT_LEG_BACK')
+        LEFT_BACK = self.get_leg('LEFT_BACK')
+        RIGHT_BACK = self.get_leg('RIGHT_BACK')
         for _ in range(count):
-            left_leg_back.body()
-            right_leg_back.stretch()
+            LEFT_BACK.body()
+            RIGHT_BACK.stretch()
             time.sleep(SLEEP_COUNT * 5)
-            left_leg_back.stretch()
-            right_leg_back.body()
+            LEFT_BACK.stretch()
+            RIGHT_BACK.body()
             time.sleep(SLEEP_COUNT * 5)
 
         self.stand()
