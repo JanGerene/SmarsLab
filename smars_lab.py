@@ -1,7 +1,7 @@
 """
 SMARS Lab
 Copyright 2022 Jan Gerene
-based on the original SmarsLab of Kevin McAmeer
+based on the original SmarsLab of Kevin McAleer
 Copyright 2019 Kevin McAleer
 3 February 2019
 Updated 13 June 2021 
@@ -9,7 +9,7 @@ Updated 13 June 2021
 
 from pathlib import Path
 import logging
-from logging.config import dictConfig
+from logging.config import fileConfig
 
 from flask import Flask, render_template, request, jsonify, flash
 from markupsafe import Markup
@@ -19,8 +19,12 @@ from smars import SmarsRobot
 import smars as smars
 
 
+fileConfig('logging_config.ini')
+logger = logging.getLogger(__name__)
+
+
 class CommandHistory:
-    _history = [str]
+    _history = []
 
     @property
     def history(self):
@@ -32,23 +36,23 @@ class CommandHistory:
     def clear(self):
         self._history = []
 
-    def get_last_ten(self)->list[str]:
+    def get_last_ten(self)->list:
         return self._history[-10:]
 
- 
-logging.basicConfig(level=logging.ERROR)
+
 DRIVER = smars.do_not_use_pca_driver
 app = Flask(__name__)
 smars = SmarsRobot()
-command_history = CommandHistory()
 telemetry = []
 base_dir = Path.cwd()
+command_history = CommandHistory()
+
 
 @app.route("/")
 def index():
     """ render the main index template """
     global telemetry
-    telemetry = smars.get_telemetry()
+    telemetry = smars.telemetry
     if DRIVER == True:
         flash(Markup('PCA9685 Driver not loaded.'), 'danger')
     return render_template("index.html")
@@ -63,12 +67,14 @@ def about():
 @app.route('/metricsapi', methods=['GET', 'POST'])
 def metricsapi():
     """ metrics api """
-    # print("/metricsapi")
     if request.method == 'POST':
         metric = request.values.get('metric')
-        if metric == "telemetry":
-            return jsonify(smars.get_telemetry())
-    return "Ok"
+        try:
+            if metric == "telemetry":
+                return jsonify(smars.telemetry)
+        except (TypeError):
+            logger.debug("jsonify telemetry failed")
+
 
 # new ControlAPI
 @app.route("/controlapi", methods=['GET', 'POST'])
@@ -97,7 +103,10 @@ def controlapi():
         elif command == "clear_history":
             command_history.clear()
         elif command == "full_history":
-            return jsonify(command_history.get_history())
+            try:
+                return jsonify(command_history.history)
+            except (TypeError) as e:
+                logger.error("could not jsonify full history")
         elif command == "home":
             smars.default()
 
@@ -129,7 +138,7 @@ def background_process():
         else:
             return jsonify(result="try again")
     except Exception as error:
-        logging.error(error)    
+        logger.error(error)    
     return jsonify(result="There was an error")
 
 
@@ -145,11 +154,19 @@ def get_command_history():
     if request.method == 'POST':
         listtype = request.values.get('listtype')
         if listtype == "top10":
-            return jsonify(command_history.get_last_ten())
+            try:
+                return jsonify(command_history.get_last_ten())
+            except (TypeError) as e:
+                logger.debug(e)
+                logger.debug("could not jsonify last 10 commands ")
         else:
-            return jsonify(command_history.history())
-    """ return the current command history in JSON format """
-    return jsonify(command_history.history())
+            try:
+                return jsonify(command_history.history)
+            except (TypeError) as e:
+                logger.debug(e)
+                logger.debug("could not jsonify command history " + e)
+        return jsonify("command history failed")
+
 
 
 @app.route('/setup')

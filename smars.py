@@ -3,7 +3,7 @@ provides functions and classes for the SMARS quad robot
 based on Kevin McAleers work 
 """
 
-import time
+from time import sleep
 import logging
 
 import yaml
@@ -12,28 +12,28 @@ import Adafruit_PCA9685
 
 SLEEP_COUNT = 0.05  # time between pwm operations
 
-logging.basicConfig(filename='smars.log', encoding='utf-8', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 try:
     pwm = Adafruit_PCA9685.PCA9685()
-    time.sleep(1)
+    sleep(1)
 except OSError as error:
-    logging.error("failed to initialise PCA9685 servo driver")
+    logger.error("failed to initialise PCA9685 servo driver")
     do_not_use_pca_driver = True
     pwm = ""
 except (RuntimeError) as ex:
-    logging.error("error loading the Adafruit driver; loading without PCA9685")
+    logger.error("error loading the Adafruit driver; loading without PCA9685")
     do_not_use_pca_driver = True
 else :
     do_not_use_pca_driver = False
-    logging.info("pca9685 driver loaded")
+    logger.info("pca9685 driver loaded")
 try:
     if do_not_use_pca_driver is False:
         pwm.set_pwm_freq(60)
-        time.sleep(1)
+        sleep(1)
 except ValueError as error:
     log_string = "failed to set pwm frequency: " + error
-    logging.error(log_string)
+    logger.error(log_string)
 
 
 class Limb:
@@ -57,12 +57,11 @@ class Limb:
             self.bodyangle = self._maxangle
             self.stretchangle = self._minangle
             self.swing_angle = (self._maxangle - self._minangle) / 2
-        self.current_angle = self.bodyangle
         self.angle = self.bodyangle
 
     
     @property 
-    def name(self):
+    def name(self)->str:
         return self._name
 
     @name.setter
@@ -76,7 +75,10 @@ class Limb:
 
 
     @property
-    def angle(self):
+    def angle(self)->int:
+        """
+        current angle of limb
+        """
         return self._angle 
 
     @angle.setter
@@ -94,11 +96,11 @@ class Limb:
                 try:
                     pwm.set_pwm(self._channel, self._channel, pulse)
                 except RuntimeError as error:
-                    logging.warning("Failed to set PWM frequency")
-                    logging.warning(error)
+                    logger.warning("Failed to set PWM frequency")
+                    logger.warning(error)
             self.current_angle = value
         else:
-            raise ValueError("angle outside bounds")
+            raise ValueError(f"angle.setter: angle = {value}: outside bounds")
 
 
     @property
@@ -108,7 +110,7 @@ class Limb:
     @channel.setter
     def channel(self, value):
         if not isinstance(value, int):
-            raise TypeError("channel must be an interger")
+            raise TypeError("channel must be an integer")
         if 0 <= value <= 15:
             self._channel = value
         else:
@@ -159,7 +161,6 @@ class Limb:
         set the limb to the default angle
         """
         self.angle = self.maxangle - self.minangle
-        self.current_angle = self.maxangle - self.minangle
 
 
     def body(self):
@@ -170,61 +171,51 @@ class Limb:
             self.angle =self.bodyangle = self.minangle
         else:
             self.angle = self.bodyangle = self.maxangle
-        self.current_angle = self.bodyangle
 
 
     def swing(self):
         """
         sets limb to swing position (45° halfway between body and stretch position
         """
-        if not self.invert:
-            swing_angle = (self.minangle / 2) + self.minangle
-        else:
-            swing_angle = (self.maxangle - self.minangle) / 2
-        self.angle = self.swing_angle = self.current_angle = swing_angle
+        self.angle = self.swing_angle
     
 
     def stretch(self):
         """
         sets limb to stretch position
         """
-        if not self.invert:
-            self.angle = self.maxangle
-        else:
-            self.angle = self.minangle
-        self.str
-        
 
+        self.angle = self.stretchangle
+        
+        
 class Leg(Limb):
     def tick(self):
         """
         each tick received changes the current angle, unless limit is reached which returns true
         """
         if self.name in ['LEFT_FRONT', 'LEFT_BACK']:
-            if self.current_angle <= self.maxangle:
-                self.current_angle += 2
-                self.angle = self.current_angle
-                return False
+            self.current_angle += 2
+            if self.current_angle > self.maxangle:
+                return True
         if self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
-            if self.current_angle >= self.minangle:
-                self.current_angle -= 2
-                self.angle = self.current_angle
-                return False
-        return True
+            self.current_angle -= 2
+            if self.current_angle < self.minangle:
+                return True
+        self.angle = self.current_angle
+        return False
 
 
     def untick(self):
         if self.name in ['RIGHT_BACK', 'RIGHT_FRONT']:
-            if self.current_angle <= self.maxangle:
-                self.current_angle += 2
-                self.angle = self.current_angle
-                return False
+            self.current_angle += 2
+            if self.current_angle > self.maxangle:
+                return True
         if self.name in ['LEFT_BACK', 'LEFT_FRONT']:
-            if self.current_angle >= self.minangle:
-                self.current_angle -= 2
-                self.angle = self.current_angle
-                return False
-        return True
+            self.current_angle -= 2
+            if self.current_angle < self.minangle:
+                return True
+        self.angle = self.current_angle
+        return False
        
 
 class Foot(Limb):
@@ -255,16 +246,32 @@ class SmarsRobot():
     def __init__(self):
         with open('config.yaml','r') as file:
             config = yaml.safe_load(file)
-        self.feet = [Foot]
+        self.feet = []
         limbs = config['feet']
         for limb in limbs:
             self.feet.append(Foot(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
-        self.legs = [Leg]
         limbs = config['legs']
+        self.legs = []
         for limb in limbs:
             self.legs.append(Leg(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
+        print (len(self.legs))
 
 
+    @property
+    def telemetry(self):
+        """
+        returns a list of measurements
+        """
+        _telemetry = []
+        _telemetry.append(['legs', ''])
+        for limb in self.legs:
+            _telemetry.append([limb.name, limb.angle])
+        _telemetry.append(['feet', ''])
+        for limb in self.feet:
+            _telemetry.append([limb.name, limb.angle])
+        return _telemetry
+        
+        
     def get_leg(self, name:str)->Leg:
         for leg in self.legs:
             if leg.name == name:
@@ -303,19 +310,17 @@ class SmarsRobot():
             foot.up()
 
 
-
     def swing(self):
         """
         move legs to swing position, robot forms a giant X shape
         """
         for index, foot in enumerate(self.feet):
             foot.down()
-            time.sleep(SLEEP_COUNT)
+            sleep(SLEEP_COUNT)
             self.legs[index].swing()
-            time.sleep(SLEEP_COUNT)
+            sleep(SLEEP_COUNT)
             foot.up()
-            time.sleep(SLEEP_COUNT)
-
+            sleep(SLEEP_COUNT)
 
 
     def walkforward(self, steps: int=None):
@@ -339,7 +344,7 @@ class SmarsRobot():
                     leg.tick()
                 else:
                     self.feet[index].down()
-                    time.sleep(SLEEP_COUNT)
+                    sleep(SLEEP_COUNT)
                     if not leg.invert:
                         if leg.name == "RIGHT_FRONT":
                             leg.stretch()
@@ -350,9 +355,9 @@ class SmarsRobot():
                             leg.body()
                         else:
                             leg.stretch()
-                    time.sleep(SLEEP_COUNT)
+                    sleep(SLEEP_COUNT)
                     self.feet[index].up()
-                    time.sleep(SLEEP_COUNT)
+                    sleep(SLEEP_COUNT)
 
 
     def walkbackward(self, steps: int=None):
@@ -376,7 +381,7 @@ class SmarsRobot():
                     leg.untick()
                 else:
                     self.feet[index].down()
-                    time.sleep(SLEEP_COUNT)
+                    sleep(SLEEP_COUNT)
                     if not leg.invert:
                         if leg.name == "LEFT_BACK":
                             leg.stretch()
@@ -387,9 +392,9 @@ class SmarsRobot():
                             leg.body()
                         else:
                             leg.stretch()
-                    time.sleep(SLEEP_COUNT)
+                    sleep(SLEEP_COUNT)
                     self.feet[index].up()
-                    time.sleep(SLEEP_COUNT)
+                    sleep(SLEEP_COUNT)
 
 
     def turnleft(self):
@@ -398,7 +403,7 @@ class SmarsRobot():
         self.get_leg('LEFT_BACK').body()
         self.get_leg('RIGHT_FRONT').body()
         self.get_leg('RIGHT_BACK').stretch()       
-        time.sleep(SLEEP_COUNT)
+        sleep(SLEEP_COUNT)
         self.swing()
 
 
@@ -408,7 +413,7 @@ class SmarsRobot():
         self.get_leg('RIGHT_BACK').body()
         self.get_leg('LEFT_FRONT').body()
         self.get_leg('LEFT_BACK').stretch()       
-        time.sleep(SLEEP_COUNT)
+        sleep(SLEEP_COUNT)
         self.swing()       
 
 
@@ -422,28 +427,51 @@ class SmarsRobot():
         self.sit()
         self.get_foot("LEFT_BACK").up()
         self.get_foot('RIGHT_BACK').up()
-        time.sleep(SLEEP_COUNT)
+        sleep(SLEEP_COUNT)
 
         LEFT_BACK = self.get_leg('LEFT_BACK')
         RIGHT_BACK = self.get_leg('RIGHT_BACK')
         for _ in range(count):
             LEFT_BACK.body()
             RIGHT_BACK.stretch()
-            time.sleep(SLEEP_COUNT * 5)
+            sleep(SLEEP_COUNT * 5)
             LEFT_BACK.stretch()
             RIGHT_BACK.body()
-            time.sleep(SLEEP_COUNT * 5)
+            sleep(SLEEP_COUNT * 5)
 
         self.stand()
 
     
-    def get_telemetry(self):
+    def stretch(self):
         """
-        returns a list of measurements
+        move all limbs to strectch position
+        legs are stretched out towards head and tail
         """
-        telemetry = []
-        for limb in self.legs:
-            telemetry.append([limb.name, limb.angle])
-        for limb in self.feet:
-            telemetry.append([limb.name, limb.angle])
-        return telemetry
+        for index, foot in enumerate(self.feet):
+            foot.down()
+            sleep(SLEEP_COUNT)
+            self.legs[index].stretch()
+            foot.up()
+            sleep(SLEEP_COUNT)
+
+    
+    def clap(self, count: int= None):
+        """
+        claps front 2 feet count times
+        default is once
+        """
+        if count is None:
+            count = 1
+        self.sit()
+
+        left_leg = self.get_leg("LEFT_FRONT")
+        right_leg = self.get_leg("RIGHT_FRONT")
+        for _ in range(count):
+            left_leg.body()
+            right_leg.body()
+            sleep(SLEEP_COUNT * 2)
+            left_leg.stretch()
+            right_leg.stretch()
+            sleep(SLEEP_COUNT * 2)
+
+        self.stand()

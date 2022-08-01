@@ -34,12 +34,14 @@ class test_smars_robot(unittest.TestCase):
 
     def test_get_leg(self):
         r = sl.SmarsRobot()
-        leg = r.get_leg('LEFT_LEG_BACK')
+        leg = r.get_leg('LEFT_BACK')
         self.assertEqual(leg.channel, 2)
 
     def test_get_telemetry(self):
         r = sl.SmarsRobot()
-        r.get_telemetry()
+        telemetry = r.telemetry
+        for measure in telemetry:
+            print (measure)
 
 
 class test_leg(unittest.TestCase):
@@ -76,11 +78,6 @@ class test_command_history(unittest.TestCase):
 
     def test_create_command_history(self):
         h = smars_lab.CommandHistory()
-        self.assertEqual(h.history[0], "*** new history ***")
-        h.append("first line")
-        self.assertEqual(len(h.history), 2)
-        self.assertTrue("first line" in h.history)
-        self.assertEqual(h.history[1], "first line")
         h.clear()
         self.assertEqual(len(h.history), 0)
         h.append('1')
