@@ -9,7 +9,7 @@ Updated 13 June 2021
 
 from pathlib import Path
 import logging
-from logging.config import fileConfig
+
 
 from flask import Flask, render_template, request, jsonify, flash
 from markupsafe import Markup
@@ -19,7 +19,7 @@ from smars import SmarsRobot
 import smars as smars
 
 
-fileConfig('logging_config.ini')
+logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +44,6 @@ DRIVER = smars.do_not_use_pca_driver
 app = Flask(__name__)
 smars = SmarsRobot()
 telemetry = []
-base_dir = Path.cwd()
 command_history = CommandHistory()
 
 
@@ -76,11 +75,9 @@ def metricsapi():
             logger.debug("jsonify telemetry failed")
 
 
-# new ControlAPI
 @app.route("/controlapi", methods=['GET', 'POST'])
 def controlapi():
     """ control api """
-    
     if request.method == 'POST':
         command = request.values.get('command')
         command_history.append(command)
@@ -105,7 +102,7 @@ def controlapi():
         elif command == "full_history":
             try:
                 return jsonify(command_history.history)
-            except (TypeError) as e:
+            except (TypeError):
                 logger.error("could not jsonify full history")
         elif command == "home":
             smars.default()

@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 try:
     pwm = Adafruit_PCA9685.PCA9685()
     sleep(1)
-except OSError as error:
+except OSError:
     logger.error("failed to initialise PCA9685 servo driver")
     do_not_use_pca_driver = True
     pwm = ""
-except (RuntimeError) as ex:
+except (RuntimeError):
     logger.error("error loading the Adafruit driver; loading without PCA9685")
     do_not_use_pca_driver = True
 else :
@@ -31,16 +31,14 @@ try:
     if do_not_use_pca_driver is False:
         pwm.set_pwm_freq(60)
         sleep(1)
-except ValueError as error:
-    log_string = "failed to set pwm frequency: " + error
-    logger.error(log_string)
+except ValueError:
+    logger.error('failed to set pwm frequency')
 
 
 class Limb:
     _angle = 0
     min_pulse = 150
     max_pulse = 600
-
 
     def __init__(self, name: str, channel: int, minangle: int, maxangle: int, invert: bool):
         self._name = name
@@ -70,7 +68,7 @@ class Limb:
             'LEFT_FRONT', 'LEFT_BACK', 'RIGHT_FRONT', 'RIGHT_BACK'
         ]
         if not value in names:
-            raise ValueError('not a valid leg name')
+            raise ValueError('not a valid name')
         self._name = value
 
 
@@ -197,7 +195,7 @@ class Leg(Limb):
             self.current_angle += 2
             if self.current_angle > self.maxangle:
                 return True
-        if self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
+        elif self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
             self.current_angle -= 2
             if self.current_angle < self.minangle:
                 return True
@@ -210,7 +208,7 @@ class Leg(Limb):
             self.current_angle += 2
             if self.current_angle > self.maxangle:
                 return True
-        if self.name in ['LEFT_BACK', 'LEFT_FRONT']:
+        elif self.name in ['LEFT_BACK', 'LEFT_FRONT']:
             self.current_angle -= 2
             if self.current_angle < self.minangle:
                 return True
@@ -254,8 +252,7 @@ class SmarsRobot():
         self.legs = []
         for limb in limbs:
             self.legs.append(Leg(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
-        print (len(self.legs))
-
+        logger.debug(f"we have {len(self.legs)} legs and {len(self.feet)} feet")
 
     @property
     def telemetry(self):
@@ -288,16 +285,18 @@ class SmarsRobot():
         """
         set the limbs to the default position (90°)
         """
-        for limb in self.legs:
-            limb.default()
-        for limb in self.feet:
-            limb.default()
+        logger.debug("default position")
+        for leg in self.legs:
+            leg.default()
+        for foot in self.feet:
+            foot.default()
 
 
     def sit(self):
         """
         set each foot to down posistion
         """
+        logger.debug("sitting down")
         for foot in self.feet:
             foot.down()
 
@@ -306,6 +305,7 @@ class SmarsRobot():
         """
         set each foot to up posistion
         """
+        logger.debug("standing up")
         for foot in self.feet:
             foot.up()
 
@@ -314,6 +314,7 @@ class SmarsRobot():
         """
         move legs to swing position, robot forms a giant X shape
         """
+        logger.debug("swinging")
         for index, foot in enumerate(self.feet):
             foot.down()
             sleep(SLEEP_COUNT)
@@ -328,6 +329,7 @@ class SmarsRobot():
         walk forward number of steps.
         if steps not defined take single step
         """
+        logger.debug("walking forward")
         if steps is None:
             steps = 1
 
@@ -365,6 +367,7 @@ class SmarsRobot():
         walk backward number of steps.
         if steps not defined take single step
         """
+        logger.debug("walking backward")
         if steps is None:
             steps = 1
 
@@ -398,6 +401,7 @@ class SmarsRobot():
 
 
     def turnleft(self):
+        logger.debug('turning left')
         self.swing()
         self.get_leg('LEFT_FRONT').stretch()
         self.get_leg('LEFT_BACK').body()
@@ -408,6 +412,7 @@ class SmarsRobot():
 
 
     def turnright(self):
+        logger.debug('turning right')
         self.swing()
         self.get_leg('RIGHT_FRONT').stretch()
         self.get_leg('RIGHT_BACK').body()
@@ -421,6 +426,7 @@ class SmarsRobot():
         """
         wiggle but
         """
+        logger.debug("wingling")
         if count is None:
             count = 1
 
@@ -447,6 +453,7 @@ class SmarsRobot():
         move all limbs to strectch position
         legs are stretched out towards head and tail
         """
+        logger.debug('stretching')
         for index, foot in enumerate(self.feet):
             foot.down()
             sleep(SLEEP_COUNT)
@@ -460,6 +467,7 @@ class SmarsRobot():
         claps front 2 feet count times
         default is once
         """
+        logger.debug('clapping')
         if count is None:
             count = 1
         self.sit()
@@ -475,3 +483,35 @@ class SmarsRobot():
             sleep(SLEEP_COUNT * 2)
 
         self.stand()
+
+
+def main():
+    robot = SmarsRobot()
+
+    command = input('>>>')
+    while command  != 'quit':
+        if command == "sit":
+            robot.sit()
+        elif command == 'stand':
+            robot.stand()
+        elif command == 'swing':
+            robot.swing()
+        elif command == 'forward':
+            robot.walkforward()
+        elif command == 'backward':
+            robot.walkbackward()
+        elif command == 'left':
+            robot.turnleft()
+        elif command == 'right':
+            robot.turnright()
+        elif command == 'wiggle':
+            robot.wiggle()
+        elif command == 'stretch':
+            robot.stretch()
+        elif command == 'clap':
+            robot.clap()
+        command = input('>>>')
+
+
+if __name__ == '__main__':
+    main()
