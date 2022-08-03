@@ -90,6 +90,7 @@ class Limb:
             mapmax = self.max_pulse - self.min_pulse
             percentage = (float(value) / 100) * 100
             pulse = int(((float(mapmax) / 100) * percentage) + self.min_pulse)
+            print(f"angle = {self.angle}, percentage = {percentage}, pulse = {pulse}, channel = {self._channel}")
             if do_not_use_pca_driver is False:
                 try:
                     pwm.set_pwm(self._channel, self._channel, pulse)
@@ -486,31 +487,7 @@ class SmarsRobot():
 
 
 def main():
-    robot = SmarsRobot()
-
-    command = input('>>>')
-    while command  != 'quit':
-        if command == "sit":
-            robot.sit()
-        elif command == 'stand':
-            robot.stand()
-        elif command == 'swing':
-            robot.swing()
-        elif command == 'forward':
-            robot.walkforward()
-        elif command == 'backward':
-            robot.walkbackward()
-        elif command == 'left':
-            robot.turnleft()
-        elif command == 'right':
-            robot.turnright()
-        elif command == 'wiggle':
-            robot.wiggle()
-        elif command == 'stretch':
-            robot.stretch()
-        elif command == 'clap':
-            robot.clap()
-        command = input('>>>')
+    pass
 
 
 if __name__ == '__main__':
