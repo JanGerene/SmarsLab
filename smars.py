@@ -10,6 +10,7 @@ import yaml
 
 import Adafruit_PCA9685
 
+
 SLEEP_COUNT = 0.05  # time between pwm operations
 
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ class Limb:
         if self._minangle <= value <= self._maxangle:
             self._angle = value
             mapmax = self.max_pulse - self.min_pulse
-            percentage = (float(value) / 100) * 100
+            percentage = (float(value) / 180) * 100
             pulse = int(((float(mapmax) / 100) * percentage) + self.min_pulse)
             print(f"angle = {self.angle}, percentage = {percentage}, pulse = {pulse}, channel = {self._channel}")
             if do_not_use_pca_driver is False:
