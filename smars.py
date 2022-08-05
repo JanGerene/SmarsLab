@@ -9,7 +9,7 @@ import logging
 import yaml
 
 logger = logging.getLogger(__name__)
-from  Adafruit_PCA9685 import PCA9685
+from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 try:
     from board import SCL, SDA
@@ -26,7 +26,7 @@ try:
     pca = PCA9685(i2c)
     pca.frequency = 50
 except:
-    logger.error("failed to initialise PCA9685 servo driver")
+    logger.error("failed to initialise PCA9685 servo driver") 
     do_not_use_pca_driver = True
 else :
     do_not_use_pca_driver = False
