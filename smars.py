@@ -8,32 +8,29 @@ import logging
 
 import yaml
 
-import Adafruit_PCA9685
+logger = logging.getLogger(__name__)
+from  Adafruit_PCA9685 import PCA9685
+from adafruit_motor import servo
+try:
+    from board import SCL, SDA
+    import busio
+except (NotImplementedError):
+    logger.warning("circuitpython not supported on this platform")
 
 
 SLEEP_COUNT = 0.05  # time between pwm operations
 
-logger = logging.getLogger(__name__)
 
 try:
-    pwm = Adafruit_PCA9685.PCA9685()
-    sleep(1)
-except OSError:
+    i2c = busio.I2C(SCL, SDA)
+    pca = PCA9685(i2c)
+    pca.frequency = 50
+except:
     logger.error("failed to initialise PCA9685 servo driver")
-    do_not_use_pca_driver = True
-    pwm = ""
-except (RuntimeError):
-    logger.error("error loading the Adafruit driver; loading without PCA9685")
     do_not_use_pca_driver = True
 else :
     do_not_use_pca_driver = False
     logger.info("pca9685 driver loaded")
-try:
-    if do_not_use_pca_driver is False:
-        pwm.set_pwm_freq(60)
-        sleep(1)
-except ValueError:
-    logger.error('failed to set pwm frequency')
 
 
 class Limb:
@@ -47,16 +44,17 @@ class Limb:
         self._minangle = minangle
         self._maxangle = maxangle
         self._invert = invert
+        self._servo = servo.Servo(pca.channels[channel])
 
         if not self.invert:
-            self.bodyangle = self._minangle
-            self.stretchangle = self._maxangle
-            self.swing_angle = (self._minangle / 2) + self._minangle
+            self._body_angle = self._minangle
+            self._stretch_angle = self._maxangle
+            self._swing_angle = (self._minangle / 2) + self._minangle
         else:
-            self.bodyangle = self._maxangle
-            self.stretchangle = self._minangle
-            self.swing_angle = (self._maxangle - self._minangle) / 2
-        self.angle = self.bodyangle
+            self._body_angle = self._maxangle
+            self._stretch_angle = self._minangle
+            self._swing_angle = (self._maxangle - self._minangle) / 2
+        self.angle = self._body_angle
 
     
     @property 
@@ -83,21 +81,11 @@ class Limb:
     @angle.setter
     def angle(self, value: int):
         """ 
-        works out the value of the angle by mapping min and max angle, 
-        moves limb to that position
+        moves limb to position
         """
         if self._minangle <= value <= self._maxangle:
             self._angle = value
-            mapmax = self.max_pulse - self.min_pulse
-            percentage = (float(value) / 180) * 100
-            pulse = int(((float(mapmax) / 100) * percentage) + self.min_pulse)
-            print(f"angle = {self.angle}, percentage = {percentage}, pulse = {pulse}, channel = {self._channel}")
-            if do_not_use_pca_driver is False:
-                try:
-                    pwm.set_pwm(self._channel, self._channel, pulse)
-                except RuntimeError as error:
-                    logger.warning("Failed to set PWM frequency")
-                    logger.warning(error)
+            self._servo.angle = value
             self.current_angle = value
         else:
             raise ValueError(f"angle.setter: angle = {value}: outside bounds")
@@ -168,24 +156,23 @@ class Limb:
         set limb to its body position
         """
         if not self.invert:
-            self.angle =self.bodyangle = self.minangle
+            self.angle =self._body_angle = self.minangle
         else:
-            self.angle = self.bodyangle = self.maxangle
+            self.angle = self._body_angle = self.maxangle
 
 
     def swing(self):
         """
         sets limb to swing position (45° halfway between body and stretch position
         """
-        self.angle = self.swing_angle
+        self.angle = self._swing_angle
     
 
     def stretch(self):
         """
         sets limb to stretch position
         """
-
-        self.angle = self.stretchangle
+        self.angle = self._stretch_angle
         
         
 class Leg(Limb):
