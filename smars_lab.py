@@ -15,8 +15,8 @@ from flask import Flask, render_template, request, jsonify, flash
 from markupsafe import Markup
 from flask_bootstrap import Bootstrap
 
-from smars import SmarsRobot
-import smars as smars
+from SMARS import SmarsRobot
+import smars as SMARS
 
 
 logging.config.fileConfig('logging_config.ini')
@@ -40,63 +40,63 @@ class CommandHistory:
         return self._history[-10:]
 
 
-DRIVER = smars.do_not_use_pca_driver
-app = Flask(__name__)
-smars = SmarsRobot()
+DRIVER = SMARS.do_not_use_pca_driver
+APP = Flask(__name__)
+SMARS = SmarsRobot()
 telemetry = []
 command_history = CommandHistory()
 
 
-@app.route("/")
+@APP.route("/")
 def index():
     """ render the main index template """
     global telemetry
-    telemetry = smars.telemetry
+    telemetry = SMARS.telemetry
     if DRIVER == True:
         flash(Markup('PCA9685 Driver not loaded.'), 'danger')
     return render_template("index.html")
 
 
-@app.route("/about")
+@APP.route("/about")
 def about():
     """ returns the about page """
     return render_template("about.html")
 
 
-@app.route('/metricsapi', methods=['GET', 'POST'])
+@APP.route('/metricsapi', methods=['GET', 'POST'])
 def metricsapi():
     """ metrics api """
     if request.method == 'POST':
         metric = request.values.get('metric')
         try:
             if metric == "telemetry":
-                return jsonify(smars.telemetry)
+                return jsonify(SMARS.telemetry)
         except (TypeError):
             logger.debug("jsonify telemetry failed")
 
 
-@app.route("/controlapi", methods=['GET', 'POST'])
+@APP.route("/controlapi", methods=['GET', 'POST'])
 def controlapi():
     """ control api """
     if request.method == 'POST':
         command = request.values.get('command')
         command_history.append(command)
         if command == "up":
-            smars.walkforward(steps=10)
+            SMARS.walkforward(steps=10)
         elif command == "down":
-            smars.walkbackward(steps=10)
+            SMARS.walkbackward(steps=10)
         elif command == "left":
-            smars.turnleft()
+            SMARS.turn_left()
         elif command == "right":
-            smars.turnright()
+            SMARS.turn_right()
         elif command == "stand":
-            smars.stand()
+            SMARS.stand()
         elif command == "sit":
-            smars.sit()
+            SMARS.sit()
         elif command == "wiggle":
-            smars.wiggle(1)
+            SMARS.wiggle(1)
         elif command == "clap":
-            smars.clap(1)
+            SMARS.clap(1)
         elif command == "clear_history":
             command_history.clear()
         elif command == "full_history":
@@ -105,7 +105,7 @@ def controlapi():
             except (TypeError):
                 logger.error("could not jsonify full history")
         elif command == "home":
-            smars.default()
+            SMARS.default()
 
     return "Ok"
 
@@ -118,14 +118,14 @@ def shutdown_server():
     func()
 
 
-@app.route('/shutdown')
+@APP.route('/shutdown')
 def shutdown():
     """ requests the web server shutsdown """
     shutdown_server()
     return 'Server shutting down... Done.'
 
 
-@app.route('/background_process')
+@APP.route('/background_process')
 def background_process():
     """ return dynamic data to JQuery """
     try:
@@ -139,13 +139,13 @@ def background_process():
     return jsonify(result="There was an error")
 
 
-@app.route('/telemetry')
+@APP.route('/telemetry')
 def get_telemetry():
     """ return the current telemetry in JSON format """
     return jsonify(telemetry)
 
 
-@app.route('/commandhistory', methods=['POST', 'GET'])
+@APP.route('/commandhistory', methods=['POST', 'GET'])
 def get_command_history():
     """ returns the command history """
     if request.method == 'POST':
@@ -166,7 +166,7 @@ def get_command_history():
 
 
 
-@app.route('/setup')
+@APP.route('/setup')
 def setup():
     """ The setup wizard screen """
     if DRIVER is True:
@@ -175,7 +175,7 @@ def setup():
     return render_template("setup.html")
 
 
-@app.route('/test', methods=['GET', 'POST'])
+@APP.route('/test', methods=['GET', 'POST'])
 def test():
     """ Tests a limb passed to it by a channel number """
     return render_template("setup.html")
@@ -184,11 +184,11 @@ def test():
 def main():
     """ main event loop """
     print("Starting SMARSLab...")
-    app.secret_key = 'development-key'
-    app.host = '0.0.0.0'
-    app.debug = True
-    Bootstrap(app)
-    app.run(host='0.0.0.0')
+    APP.secret_key = 'development-key'
+    APP.host = '0.0.0.0'
+    APP.debug = True
+    Bootstrap(APP)
+    APP.run(host='0.0.0.0')
 
 
 if __name__ == "__main__":

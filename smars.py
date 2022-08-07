@@ -34,10 +34,6 @@ else :
 
 
 class Limb:
-    _angle = 0
-    min_pulse = 150
-    max_pulse = 600
-
     def __init__(self, name: str, channel: int, minangle: int, maxangle: int, invert: bool):
         self._name = name
         self._channel = channel
@@ -54,7 +50,7 @@ class Limb:
             self._body_angle = self._maxangle
             self._stretch_angle = self._minangle
             self._swing_angle = (self._maxangle - self._minangle) / 2
-        self.angle = self._body_angle
+        self.angle = self._angle = self._body_angle
 
     
     @property 
@@ -85,6 +81,7 @@ class Limb:
         """
         if self._minangle <= value <= self._maxangle:
             self._angle = value
+            print (self._servo.angle)
             self._servo.angle = value
             self.current_angle = value
         else:
@@ -389,7 +386,7 @@ class SmarsRobot():
                     sleep(SLEEP_COUNT)
 
 
-    def turnleft(self):
+    def turn_left(self):
         logger.debug('turning left')
         self.swing()
         self.get_leg('LEFT_FRONT').stretch()
@@ -400,7 +397,7 @@ class SmarsRobot():
         self.swing()
 
 
-    def turnright(self):
+    def turn_right(self):
         logger.debug('turning right')
         self.swing()
         self.get_leg('RIGHT_FRONT').stretch()
