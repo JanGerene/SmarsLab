@@ -52,7 +52,11 @@ class Limb:
             self._swing_angle = (self._maxangle - self._minangle) / 2
         self.angle = self._angle = self._body_angle
 
-    
+    def __repr__(self):
+        return(f"Limb: {self._name}, channel: {self._channel}, servo: {self._servo} ")
+
+
+
     @property 
     def name(self)->str:
         return self._name

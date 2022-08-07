@@ -15,7 +15,7 @@ from flask import Flask, render_template, request, jsonify, flash
 from markupsafe import Markup
 from flask_bootstrap import Bootstrap
 
-from SMARS import SmarsRobot
+from smars import SmarsRobot
 import smars as SMARS
 
 
