@@ -85,7 +85,6 @@ class Limb:
         """
         if self._min_angle <= value <= self._max_angle:
             self._angle = value
-            print (self._servo.angle)
             self._servo.angle = value
             self.current_angle = value
         else:
