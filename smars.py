@@ -34,22 +34,22 @@ else :
 
 
 class Limb:
-    def __init__(self, name: str, channel: int, minangle: int, maxangle: int, invert: bool):
+    def __init__(self, name: str, channel: int, min_angle: int, max_angle: int, invert: bool):
         self._name = name
         self._channel = channel
-        self._minangle = minangle
-        self._maxangle = maxangle
+        self._min_angle = min_angle
+        self._max_angle = max_angle
         self._invert = invert
         self._servo = servo.Servo(pca.channels[channel])
 
-        if not self.invert:
-            self._body_angle = self._minangle
-            self._stretch_angle = self._maxangle
-            self._swing_angle = (self._minangle / 2) + self._minangle
+        if self.invert:
+            self._body_angle = self._min_angle
+            self._stretch_angle = self._max_angle
+            self._swing_angle = (self._min_angle / 2) + self._min_angle
         else:
-            self._body_angle = self._maxangle
-            self._stretch_angle = self._minangle
-            self._swing_angle = (self._maxangle - self._minangle) / 2
+            self._body_angle = self._max_angle
+            self._stretch_angle = self._min_angle
+            self._swing_angle = (self._max_angle - self._min_angle) / 2
         self.angle = self._angle = self._body_angle
 
     def __str__(self):
@@ -83,7 +83,7 @@ class Limb:
         """ 
         moves limb to position
         """
-        if self._minangle <= value <= self._maxangle:
+        if self._min_angle <= value <= self._max_angle:
             self._angle = value
             print (self._servo.angle)
             self._servo.angle = value
@@ -107,31 +107,31 @@ class Limb:
 
 
     @property
-    def minangle(self):
-        return self._minangle
+    def min_angle(self):
+        return self._min_angle
 
-    @minangle.setter
-    def minangle(self, value: int):
+    @min_angle.setter
+    def min_angle(self, value: int):
         if not isinstance(value, int):
-            raise TypeError("minangle must be integer")
+            raise TypeError("min_angle must be integer")
         if 0 <= value <= 180:
-            self._minangle = value
+            self._min_angle = value
         else:
-            raise ValueError("minangle must be between 0-180")
+            raise ValueError("min_angle must be between 0-180")
 
 
     @property
-    def maxangle(self):
-        return self._maxangle
+    def max_angle(self):
+        return self._max_angle
 
-    @maxangle.setter
-    def maxangle(self, value:int):
+    @max_angle.setter
+    def max_angle(self, value:int):
         if not isinstance(value, int):
-            raise TypeError("maxangle must be integer")
+            raise TypeError("max_angle must be integer")
         if 0 <= value <= 180:
-            self._maxangle = value
+            self._max_angle = value
         else:
-            raise ValueError("maxangle must be between 0-180")   
+            raise ValueError("max_angle must be between 0-180")   
 
     
     @property
@@ -149,7 +149,7 @@ class Limb:
         """
         set the limb to the default angle
         """
-        self.angle = self.maxangle - self.minangle
+        self.angle = self.max_angle - self.min_angle
 
 
     def body(self):
@@ -157,9 +157,9 @@ class Limb:
         set limb to its body position
         """
         if not self.invert:
-            self.angle =self._body_angle = self.minangle
+            self.angle =self._body_angle = self.min_angle
         else:
-            self.angle = self._body_angle = self.maxangle
+            self.angle = self._body_angle = self.max_angle
 
 
     def swing(self):
@@ -183,11 +183,11 @@ class Leg(Limb):
         """
         if self.name in ['LEFT_FRONT', 'LEFT_BACK']:
             self.current_angle += 2
-            if self.current_angle > self.maxangle:
+            if self.current_angle > self.max_angle:
                 return True
         elif self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
             self.current_angle -= 2
-            if self.current_angle < self.minangle:
+            if self.current_angle < self.min_angle:
                 return True
         self.angle = self.current_angle
         return False
@@ -196,11 +196,11 @@ class Leg(Limb):
     def untick(self):
         if self.name in ['RIGHT_BACK', 'RIGHT_FRONT']:
             self.current_angle += 2
-            if self.current_angle > self.maxangle:
+            if self.current_angle > self.max_angle:
                 return True
         elif self.name in ['LEFT_BACK', 'LEFT_FRONT']:
             self.current_angle -= 2
-            if self.current_angle < self.minangle:
+            if self.current_angle < self.min_angle:
                 return True
         self.angle = self.current_angle
         return False
@@ -212,9 +212,9 @@ class Foot(Limb):
         lowers limb to max angle
         """
         if not self.invert:
-            self.angle = self.maxangle
+            self.angle = self.max_angle
         else:
-            self.angle = self.minangle
+            self.angle = self.min_angle
 
 
     def up(self):
@@ -222,9 +222,9 @@ class Foot(Limb):
         raises limb to min angle
         """
         if not self.invert:
-            self.angle = self.minangle
+            self.angle = self.min_angle
         else:
-            self.angle = self.maxangle
+            self.angle = self.max_angle
 
 
 class SmarsRobot():
@@ -237,11 +237,11 @@ class SmarsRobot():
         self.feet = []
         limbs = config['feet']
         for limb in limbs:
-            self.feet.append(Foot(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
+            self.feet.append(Foot(name=limb['name'], channel=limb['channel'], min_angle=limb['minangle'], max_angle=limb['maxangle'],invert=limb['invert']))
         limbs = config['legs']
         self.legs = []
         for limb in limbs:
-            self.legs.append(Leg(name=limb['name'], channel=limb['channel'], minangle=limb['minangle'], maxangle=limb['maxangle'],invert=limb['invert']))
+            self.legs.append(Leg(name=limb['name'], channel=limb['channel'], min_angle=limb['minangle'], max_angle=limb['maxangle'],invert=limb['invert']))
         logger.debug(f"we have {len(self.legs)} legs and {len(self.feet)} feet")
 
     @property

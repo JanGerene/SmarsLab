@@ -13,7 +13,7 @@ feet:
   channel: 7
   minangle: 50
   maxangle: 150
-  invert: true
+  invert: false
 - name: "RIGHT_BACK"
   channel: 5
   minangle: 50
@@ -35,7 +35,7 @@ legs:
   channel: 6
   minangle: 90
   maxangle: 180
-  invert: false
+  invert: true
 - name: "RIGHT_BACK"
   channel: 4
   minangle: 9
