@@ -53,7 +53,9 @@ class Limb:
         self.angle = self._angle = self._body_angle
 
     def __str__(self):
-        return(f"Limb: {self._name}, channel: {self._channel}, angle: {self.angle} ")
+        return(f"""Limb: {self._name}, channel: {self._channel}, angle: {self.angle},\n 
+        _min_angle: {self._min_angle}, _max_angle: {self._max_angle}, \n
+        _stretch_angle: {self._stretch_angle}, _body_angle: {self._body_angle} """)
 
 
 
