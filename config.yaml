@@ -25,7 +25,7 @@ legs:
   channel: 0
   minangle: 9
   maxangle: 90
-  invert: true
+  invert: false
 - name: "LEFT_BACK"
   channel: 2
   minangle: 90
