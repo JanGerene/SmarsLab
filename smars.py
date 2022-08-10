@@ -84,7 +84,7 @@ class Limb:
 
 class Leg(Limb):
     def __init__(self, name: str, channel: int, min_angle: int, max_angle: int, invert: bool):
-        super().__init__(name: str, channel: int, min_angle: int, max_angle: int, invert: bool)
+        super().__init__(name, channel, min_angle, max_angle, invert)
         if self._invert:
             self._body_angle = self._min_angle
             self._stretch_angle = self._max_angle
@@ -155,7 +155,7 @@ class Leg(Limb):
 
 class Foot(Limb):
     def __init__(self, name: str, channel: int, min_angle: int, max_angle: int, invert: bool):
-        super().__init__(name: str, channel: int, min_angle: int, max_angle: int, invert: bool)
+        super().__init__(name, channel, min_angle, max_angle, invert)
         if self._invert:
             self._down_angle = self._min_angle
             self._up_angle = self._max_angle
