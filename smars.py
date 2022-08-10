@@ -47,15 +47,6 @@ class Limb:
     def name(self)->str:
         return self._name
 
-    @name.setter
-    def name(self, value: str):
-        names = [
-            'LEFT_FRONT', 'LEFT_BACK', 'RIGHT_FRONT', 'RIGHT_BACK'
-        ]
-        if not value in names:
-            raise ValueError('not a valid name')
-        self._name = value
-
 
     @property
     def angle(self)->int:
@@ -80,6 +71,11 @@ class Limb:
     @property
     def channel(self):
         return self._channel
+
+    
+    @property
+    def invert(self):
+        return self._invert
     
 
 class Leg(Limb):
