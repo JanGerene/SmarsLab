@@ -43,16 +43,6 @@ class Limb:
         self._servo = servo.Servo(pca.channels[channel])
 
 
-        self.angle = self._angle = self._body_angle
-
-    def __str__(self):
-        return(f"""Limb: {self._name}, channel: {self._channel}, invertr: {self._invert},
-        _min_angle: {self._min_angle}, _max_angle: {self._max_angle},
-        _stretch_angle: {self._stretch_angle}, _body_angle: {self._body_angle}
-        angle: {self.angle} """)
-
-
-
     @property 
     def name(self)->str:
         return self._name
@@ -105,6 +95,14 @@ class Leg(Limb):
             self._swing_angle = (self._max_angle - self._min_angle) / 2
         self.body()
 
+
+    def __str__(self):
+        return(f"""Limb: {self._name}, channel: {self._channel}, invertr: {self._invert},
+        _min_angle: {self._min_angle}, _max_angle: {self._max_angle},
+        _stretch_angle: {self._stretch_angle}, _body_angle: {self._body_angle}
+        angle: {self.angle} """)
+
+
     def body(self):
         """
         set leg to its body position
@@ -156,24 +154,27 @@ class Leg(Limb):
        
 
 class Foot(Limb):
+    def __init__(self):
+        super().__init__(self)
+        if self._invert:
+            self._down_angle = self._min_angle
+            self._up_angle = self._max_angle
+        else:
+            self._down_angle = self._max_angle
+            self._up_angle = self._min_angle
+
     def down(self):
         """
         lowers foot
         """
-        if not self._invert:
-            self.angle = self._max_angle
-        else:
-            self.angle = self._min_angle
+        self.angle = self._down_angle
 
 
     def up(self):
         """
         raises foot
         """
-        if not self._invert:
-            self.angle = self._min_angle
-        else:
-            self.angle = self._max_angle
+        self.angle = self._up_angle
 
 
 class SmarsRobot():
