@@ -287,7 +287,7 @@ class SmarsRobot():
         """
         logger.debug("sitting down")
         for foot in self.feet:
-            foot.down()
+            foot.up()
 
 
     def stand(self):
@@ -296,7 +296,7 @@ class SmarsRobot():
         """
         logger.debug("standing up")
         for foot in self.feet:
-            foot.up()
+            foot.down()
 
 
     def swing(self):
@@ -305,15 +305,15 @@ class SmarsRobot():
         """
         logger.debug("swinging")
         for index, foot in enumerate(self.feet):
-            foot.down()
+            foot.up()
             sleep(SLEEP_COUNT)
             self.legs[index].swing()
             sleep(SLEEP_COUNT)
-            foot.up()
+            foot.down()
             sleep(SLEEP_COUNT)
 
 
-    def walkforward(self, steps: int=None):
+    def walk_forward(self, steps: int=None):
         """
         walk forward number of steps.
         if steps not defined take single step
@@ -351,7 +351,7 @@ class SmarsRobot():
                     sleep(SLEEP_COUNT)
 
 
-    def walkbackward(self, steps: int=None):
+    def walk_backward(self, steps: int=None):
         """
         walk backward number of steps.
         if steps not defined take single step

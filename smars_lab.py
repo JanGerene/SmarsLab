@@ -82,9 +82,9 @@ def controlapi():
         command = request.values.get('command')
         command_history.append(command)
         if command == "up":
-            SMARS.walkforward(steps=10)
+            SMARS.walk_forward(steps=10)
         elif command == "down":
-            SMARS.walkbackward(steps=10)
+            SMARS.walk_backward(steps=10)
         elif command == "left":
             SMARS.turn_left()
         elif command == "right":
