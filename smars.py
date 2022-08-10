@@ -42,14 +42,7 @@ class Limb:
         self._invert = invert
         self._servo = servo.Servo(pca.channels[channel])
 
-        if self.invert:
-            self._body_angle = self._min_angle
-            self._stretch_angle = self._max_angle
-            self._swing_angle = (self._min_angle / 2) + self._min_angle
-        else:
-            self._body_angle = self._max_angle
-            self._stretch_angle = self._min_angle
-            self._swing_angle = (self._max_angle - self._min_angle) / 2
+
         self.angle = self._angle = self._body_angle
 
     def __str__(self):
@@ -89,7 +82,7 @@ class Limb:
         if self._min_angle <= value <= self._max_angle:
             self._angle = value
             self._servo.angle = value
-            self.current_angle = value
+            self._current_angle = value
         else:
             raise ValueError(f"angle.setter: angle = {value}: outside bounds")
 
@@ -97,133 +90,90 @@ class Limb:
     @property
     def channel(self):
         return self._channel
-
-    @channel.setter
-    def channel(self, value):
-        if not isinstance(value, int):
-            raise TypeError("channel must be an integer")
-        if 0 <= value <= 15:
-            self._channel = value
-        else:
-            raise ValueError('channel must be between 0-15')
-
-
-    @property
-    def min_angle(self):
-        return self._min_angle
-
-    @min_angle.setter
-    def min_angle(self, value: int):
-        if not isinstance(value, int):
-            raise TypeError("min_angle must be integer")
-        if 0 <= value <= 180:
-            self._min_angle = value
-        else:
-            raise ValueError("min_angle must be between 0-180")
-
-
-    @property
-    def max_angle(self):
-        return self._max_angle
-
-    @max_angle.setter
-    def max_angle(self, value:int):
-        if not isinstance(value, int):
-            raise TypeError("max_angle must be integer")
-        if 0 <= value <= 180:
-            self._max_angle = value
-        else:
-            raise ValueError("max_angle must be between 0-180")   
-
     
-    @property
-    def invert(self):
-        return self._invert
 
-    @invert.setter
-    def invert(self, value):
-        if not isinstance(value, bool):
-            raise TypeError("invert must be bool")
-        self._invert = value
-
-
-    def default(self):
-        """
-        set the limb to the default angle
-        """
-        self.angle = self.max_angle - self.min_angle
-
+class Leg(Limb):
+    def __init__(self):
+        super().__init__()
+        if self._invert:
+            self._body_angle = self._min_angle
+            self._stretch_angle = self._max_angle
+            self._swing_angle = (self._min_angle / 2) + self._min_angle
+        else:
+            self._body_angle = self._max_angle
+            self._stretch_angle = self._min_angle
+            self._swing_angle = (self._max_angle - self._min_angle) / 2
+        self.body()
 
     def body(self):
         """
-        set limb to its body position
+        set leg to its body position
         """
         self.angle = self._body_angle
 
 
     def swing(self):
         """
-        sets limb to swing position (45° halfway between body and stretch position
+        sets leg to swing position (45° halfway between body and stretch position
         """
         self.angle = self._swing_angle
     
 
     def stretch(self):
         """
-        sets limb to stretch position
+        sets leg to stretch position
         """
         self.angle = self._stretch_angle
-        
-        
-class Leg(Limb):
+
+
     def tick(self):
         """
         each tick received changes the current angle, unless limit is reached which returns true
         """
         if self.name in ['LEFT_FRONT', 'LEFT_BACK']:
-            self.current_angle += 2
-            if self.current_angle > self.max_angle:
+            self._current_angle += 2
+            if self._current_angle > self._max_angle:
                 return True
         elif self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
-            self.current_angle -= 2
-            if self.current_angle < self.min_angle:
+            self._current_angle -= 2
+            if self._current_angle < self._min_angle:
                 return True
-        self.angle = self.current_angle
+        self.angle = self._current_angle
         return False
 
 
     def untick(self):
         if self.name in ['RIGHT_BACK', 'RIGHT_FRONT']:
-            self.current_angle += 2
-            if self.current_angle > self.max_angle:
+            self._current_angle += 2
+            if self._current_angle > self._max_angle:
                 return True
         elif self.name in ['LEFT_BACK', 'LEFT_FRONT']:
-            self.current_angle -= 2
-            if self.current_angle < self.min_angle:
+            self._current_angle -= 2
+            if self._current_angle < self._min_angle:
                 return True
-        self.angle = self.current_angle
+        self.angle = self._current_angle
         return False
        
 
 class Foot(Limb):
     def down(self):
         """
-        lowers limb to max angle
+        lowers foot
         """
-        if not self.invert:
-            self.angle = self.max_angle
+        if not self._invert:
+            self.angle = self._max_angle
         else:
-            self.angle = self.min_angle
+            self.angle = self._min_angle
 
 
     def up(self):
         """
-        raises limb to min angle
+        raises foot
         """
-        if not self.invert:
-            self.angle = self.min_angle
+        if not self._invert:
+            self.angle = self._min_angle
         else:
-            self.angle = self.max_angle
+            self.angle = self._max_angle
 
 
 class SmarsRobot():
@@ -283,7 +233,7 @@ class SmarsRobot():
 
     def sit(self):
         """
-        set each foot to down posistion
+        set each foot to up posistion
         """
         logger.debug("sitting down")
         for foot in self.feet:
@@ -292,7 +242,7 @@ class SmarsRobot():
 
     def stand(self):
         """
-        set each foot to up posistion
+        set each foot to down posistion
         """
         logger.debug("standing up")
         for foot in self.feet:
@@ -313,6 +263,20 @@ class SmarsRobot():
             sleep(SLEEP_COUNT)
 
 
+    def stretch(self):
+        """
+        move all limbs to strectch position
+        legs are stretched out towards head and tail
+        """
+        logger.debug('stretching')
+        for index, foot in enumerate(self.feet):
+            foot.up()
+            sleep(SLEEP_COUNT)
+            self.legs[index].stretch()
+            foot.down()
+            sleep(SLEEP_COUNT)
+
+    
     def walk_forward(self, steps: int=None):
         """
         walk forward number of steps.
@@ -435,20 +399,6 @@ class SmarsRobot():
             sleep(SLEEP_COUNT * 5)
 
         self.stand()
-
-    
-    def stretch(self):
-        """
-        move all limbs to strectch position
-        legs are stretched out towards head and tail
-        """
-        logger.debug('stretching')
-        for index, foot in enumerate(self.feet):
-            foot.down()
-            sleep(SLEEP_COUNT)
-            self.legs[index].stretch()
-            foot.up()
-            sleep(SLEEP_COUNT)
 
     
     def clap(self, count: int= None):
