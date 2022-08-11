@@ -365,19 +365,16 @@ class SmarsRobot():
         self.swing()       
 
 
-    def wiggle(self, count: int=None):
+    def wiggle(self, count=1):
         """
         wiggle but
         """
-        logger.debug("wingling")
-        if count is None:
-            count = 1
+        logger.debug("wiggling")
 
         self.sit()
         self.get_foot("LEFT_BACK").up()
         self.get_foot('RIGHT_BACK').up()
-        sleep(SLEEP_COUNT)
-
+        sleep(SLEEP_COUNT * 10)
         LEFT_BACK = self.get_leg('LEFT_BACK')
         RIGHT_BACK = self.get_leg('RIGHT_BACK')
         for _ in range(count):
@@ -387,7 +384,7 @@ class SmarsRobot():
             LEFT_BACK.stretch()
             RIGHT_BACK.body()
             sleep(SLEEP_COUNT * 5)
-
+        sleep(SLEEP_COUNT * 10)
         self.stand()
 
     

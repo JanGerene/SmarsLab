@@ -152,7 +152,7 @@ def main():
     print("Starting SMARSLab...")
     APP.secret_key = 'development-key'
     APP.host = '0.0.0.0'
-    APP.debug = True
+    APP.debug = False
     Bootstrap(APP)
     APP.run(host='0.0.0.0')
 
