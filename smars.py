@@ -125,14 +125,18 @@ class Leg(Limb):
         """
         if self.name in ['LEFT_FRONT', 'LEFT_BACK']:
             self._current_angle += 2
-            if self._current_angle > self._max_angle:
+            if self._current_angle <= self._max_angle:
+                self.angle = self._current_angle
+                return False
+            else:
                 return True
         elif self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
             self._current_angle -= 2
-            if self._current_angle < self._min_angle:
+            if self._current_angle >=  self._min_angle:
+                self.angle = self._current_angle
+                return False
+            else:
                 return True
-        self.angle = self._current_angle
-        return False
 
 
     def untick(self):
