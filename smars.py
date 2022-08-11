@@ -38,6 +38,7 @@ class Limb:
         self._min_angle = min_angle
         self._max_angle = max_angle
         self._invert = invert
+        self._angle = min_angle
         self._servo = servo.Servo(pca.channels[channel])
 
 
