@@ -40,7 +40,6 @@ class CommandHistory:
         return self._history[-10:]
 
 
-DRIVER = SMARS.do_not_use_pca_driver
 APP = Flask(__name__)
 SMARS = SmarsRobot()
 telemetry = []
@@ -52,8 +51,6 @@ def index():
     """ render the main index template """
     global telemetry
     telemetry = SMARS.telemetry
-    if DRIVER == True:
-        flash(Markup('PCA9685 Driver not loaded.'), 'danger')
     return render_template("index.html")
 
 
@@ -169,9 +166,6 @@ def get_command_history():
 @APP.route('/setup')
 def setup():
     """ The setup wizard screen """
-    if DRIVER is True:
-        flash(Markup('Driver not loaded'), 'danger')
-
     return render_template("setup.html")
 
 

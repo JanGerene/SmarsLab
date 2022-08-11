@@ -16,6 +16,7 @@ try:
     import busio
 except (NotImplementedError):
     logger.warning("circuitpython not supported on this platform")
+    raise
 
 
 SLEEP_COUNT = 0.05  # time between pwm operations
@@ -27,10 +28,7 @@ try:
     pca.frequency = 50
 except:
     logger.error("failed to initialise PCA9685 servo driver") 
-    do_not_use_pca_driver = True
-else :
-    do_not_use_pca_driver = False
-    logger.info("pca9685 driver loaded")
+    raise
 
 
 class Limb:
@@ -274,16 +272,13 @@ class SmarsRobot():
             sleep(SLEEP_COUNT)
 
     
-    def walk_forward(self, steps: int=None):
+    def walk_forward(self, steps=1):
         """
         walk forward number of steps.
         if steps not defined take single step
         """
         logger.debug("walking forward")
-        if steps is None:
-            steps = 1
 
-        self.sit()
         self.get_leg('LEFT_FRONT').body()
         self.get_leg('LEFT_BACK').body()
         self.get_leg('RIGHT_FRONT').swing()
@@ -291,11 +286,11 @@ class SmarsRobot():
         self.stand()
 
         for _ in range(steps):
-            for index, leg in enumerate(self.legs):
+            for leg, foot in zip(self.legs, self.feet):
                 if not leg.tick():
                     leg.tick()
                 else:
-                    self.feet[index].down()
+                    foot.up()
                     sleep(SLEEP_COUNT)
                     if not leg.invert:
                         if leg.name == "RIGHT_FRONT":
@@ -308,20 +303,17 @@ class SmarsRobot():
                         else:
                             leg.stretch()
                     sleep(SLEEP_COUNT)
-                    self.feet[index].up()
+                    foot.down()
                     sleep(SLEEP_COUNT)
 
 
-    def walk_backward(self, steps: int=None):
+    def walk_backward(self, steps=1):
         """
         walk backward number of steps.
         if steps not defined take single step
         """
         logger.debug("walking backward")
-        if steps is None:
-            steps = 1
 
-        self.sit()
         self.get_leg('LEFT_FRONT').body()
         self.get_leg('LEFT_BACK').body()
         self.get_leg('RIGHT_FRONT').swing()
@@ -329,11 +321,11 @@ class SmarsRobot():
         self.stand()
 
         for _ in range(steps):
-            for index, leg in enumerate(self.legs):
+            for leg, foot in zip(self.legs, self.feet):
                 if not leg.untick():
                     leg.untick()
                 else:
-                    self.feet[index].down()
+                    foot.up()
                     sleep(SLEEP_COUNT)
                     if not leg.invert:
                         if leg.name == "LEFT_BACK":
@@ -346,7 +338,7 @@ class SmarsRobot():
                         else:
                             leg.stretch()
                     sleep(SLEEP_COUNT)
-                    self.feet[index].up()
+                    foot.down()
                     sleep(SLEEP_COUNT)
 
 
