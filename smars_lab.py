@@ -8,7 +8,7 @@ Updated 13 June 2021
 """
 
 from pathlib import Path
-import logging
+import logging, logging.config
 
 
 from flask import Flask, render_template, request, jsonify, flash
