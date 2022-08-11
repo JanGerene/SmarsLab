@@ -107,21 +107,6 @@ def controlapi():
     return "Ok"
 
 
-def shutdown_server():
-    """ shutsdown the SMARSLab web server """
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
-
-
-@APP.route('/shutdown')
-def shutdown():
-    """ requests the web server shutsdown """
-    shutdown_server()
-    return 'Server shutting down... Done.'
-
-
 @APP.route('/background_process')
 def background_process():
     """ return dynamic data to JQuery """
@@ -160,19 +145,6 @@ def get_command_history():
                 logger.debug(e)
                 logger.debug("could not jsonify command history " + e)
         return jsonify("command history failed")
-
-
-
-@APP.route('/setup')
-def setup():
-    """ The setup wizard screen """
-    return render_template("setup.html")
-
-
-@APP.route('/test', methods=['GET', 'POST'])
-def test():
-    """ Tests a limb passed to it by a channel number """
-    return render_template("setup.html")
 
 
 def main():
