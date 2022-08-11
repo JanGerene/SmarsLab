@@ -1,3 +1,7 @@
 {
-    "python.pythonPath": "venv/bin/python"
+    "python.pythonPath": "venv/bin/python",
+    "sonarlint.connectedMode.project": {
+        "connectionId": "jangerene",
+        "projectKey": "JanGerene_SmarsLab"
+    }
 }

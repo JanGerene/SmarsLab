@@ -372,8 +372,8 @@ class SmarsRobot():
         logger.debug("wiggling")
 
         self.sit()
-        self.get_foot("LEFT_BACK").up()
-        self.get_foot('RIGHT_BACK').up()
+        self.get_foot("LEFT_BACK").down()
+        self.get_foot('RIGHT_BACK').down()
         sleep(SLEEP_COUNT * 10)
         LEFT_BACK = self.get_leg('LEFT_BACK')
         RIGHT_BACK = self.get_leg('RIGHT_BACK')
