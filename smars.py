@@ -3,6 +3,7 @@ provides functions and classes for the SMARS quad robot
 based on Kevin McAleers work 
 """
 
+from re import S
 from time import sleep
 import logging
 
@@ -19,7 +20,7 @@ except (NotImplementedError):
     raise
 
 
-SLEEP_COUNT = 0.05  # time between pwm operations
+SLEEP_COUNT = 0.1  # time between pwm operations
 
 
 try:
@@ -103,6 +104,7 @@ class Leg(Limb):
         set leg to its body position
         """
         self.angle = self._body_angle
+        sleep(SLEEP_COUNT)
 
 
     def swing(self):
@@ -110,6 +112,7 @@ class Leg(Limb):
         sets leg to swing position (45° halfway between body and stretch position
         """
         self.angle = self._swing_angle
+        sleep(SLEEP_COUNT)
     
 
     def stretch(self):
@@ -117,6 +120,7 @@ class Leg(Limb):
         sets leg to stretch position
         """
         self.angle = self._stretch_angle
+        sleep(SLEEP_COUNT)
 
 
     def tick(self):
@@ -284,32 +288,40 @@ class SmarsRobot():
         """
         logger.debug("walking forward")
 
-        self.get_leg('LEFT_FRONT').body()
-        self.get_leg('LEFT_BACK').body()
-        self.get_leg('RIGHT_FRONT').swing()
-        self.get_leg('RIGHT_BACK').swing()
-        self.stand()
-
+        self.swing()
         for _ in range(steps):
-            for leg, foot in zip(self.legs, self.feet):
-                if not leg.tick():
-                    leg.tick()
-                else:
-                    foot.up()
-                    sleep(SLEEP_COUNT)
-                    if not leg.invert:
-                        if leg.name == "RIGHT_FRONT":
-                            leg.stretch()
-                        else:
-                            leg.body()
-                    else:
-                        if leg.name == "RIGHT_BACK":
-                            leg.body()
-                        else:
-                            leg.stretch()
-                    sleep(SLEEP_COUNT)
-                    foot.down()
-                    sleep(SLEEP_COUNT)
+            self.step_forward()
+
+
+    def step_forward(self):
+        front_left_leg = self.get_leg('FRONT_LEFT')
+        front_right_leg = self.get_leg('FRONT_RIGHT')
+        foot = self.get_foot('FRONT_RIGHT')
+        foot.up()
+        front_left_leg.body()
+        front_right_leg.stretch()
+        foot.down()
+
+        foot = self.get_foot('FRONT_LEFT')
+        foot.up()
+        front_left_leg.stretch()
+        front_right_leg.body()
+        foot.down()
+
+        back_left_leg = self.get_leg('BACK_L3FT')
+        back_right_leg = self.get_leg('BACK_RIGHT')
+
+        foot = self.get_foot('BACK_LEFT')
+        foot.up()
+        back_left_leg.stretch()
+        back_right_leg.body()
+        foot.down()
+
+        foot = self.get_foot('BAK_RIGHT')
+        foot.up()
+        back_left_leg.body()
+        back_right_leg.stretch()
+        foot.down()
 
 
     def walk_backward(self, steps=1):
