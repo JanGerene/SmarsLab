@@ -283,8 +283,7 @@ class SmarsRobot():
     
     def walk_forward(self, steps=1):
         """
-        walk forward number of steps.
-        if steps not defined take single step
+        walk forward number of steps.  Default is 1
         """
         logger.debug("walking forward")
 
@@ -294,35 +293,39 @@ class SmarsRobot():
 
 
     def step_forward(self):
-        front_left_leg = self.get_leg('FRONT_LEFT')
-        front_right_leg = self.get_leg('FRONT_RIGHT')
-        foot = self.get_foot('FRONT_RIGHT')
+        """
+        take a single step forward
+        """
+        front_left_leg = self.get_leg('LEFT_FRONT')
+        front_right_leg = self.get_leg('RIGHT_FRONT')
+        back_left_leg = self.get_leg('LEFT_BACK')
+        back_right_leg = self.get_leg('RIGHT_BACK')
+
+        foot = self.get_foot('RIGHT_FRONT')
         foot.up()
         front_left_leg.body()
         front_right_leg.stretch()
         foot.down()
 
-        foot = self.get_foot('FRONT_LEFT')
+        foot = self.get_foot('LEFT_FRONT')
         foot.up()
         front_left_leg.stretch()
         front_right_leg.body()
         foot.down()
+        sleep(1)
 
-        back_left_leg = self.get_leg('BACK_L3FT')
-        back_right_leg = self.get_leg('BACK_RIGHT')
-
-        foot = self.get_foot('BACK_LEFT')
+        foot = self.get_foot('LEFT_BACK')
         foot.up()
         back_left_leg.stretch()
         back_right_leg.body()
         foot.down()
 
-        foot = self.get_foot('BAK_RIGHT')
+        foot = self.get_foot('RIGHT_BACK')
         foot.up()
         back_left_leg.body()
         back_right_leg.stretch()
         foot.down()
-
+        sleep(1)
 
     def walk_backward(self, steps=1):
         """
