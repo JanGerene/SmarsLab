@@ -258,10 +258,10 @@ class SmarsRobot():
         move legs to swing position, robot forms a giant X shape
         """
         logger.debug("swinging")
-        for index, foot in enumerate(self.feet):
+        for foot, leg in zip(self.feet, self.legs):
             foot.up()
             sleep(SLEEP_COUNT)
-            self.legs[index].swing()
+            leg.swing()
             sleep(SLEEP_COUNT)
             foot.down()
             sleep(SLEEP_COUNT)
@@ -273,10 +273,11 @@ class SmarsRobot():
         legs are stretched out towards head and tail
         """
         logger.debug('stretching')
-        for index, foot in enumerate(self.feet):
+        for foot, leg in zip(self.feet, self.legs):
             foot.up()
             sleep(SLEEP_COUNT)
-            self.legs[index].stretch()
+            leg.stretch()
+            sleep(SLEEP_COUNT)
             foot.down()
             sleep(SLEEP_COUNT)
 
@@ -287,7 +288,11 @@ class SmarsRobot():
         """
         logger.debug("walking forward")
 
-        self.swing()
+        self.get_leg('LEFT_FRONT').body()
+        self.get_leg('LEFT_BACK').body()
+        self.get_leg('RIGHT_FRONT').swing()
+        self.get_leg('RIGHT_BACK').swing()
+
         for _ in range(steps):
             self.step_forward()
 
@@ -296,36 +301,13 @@ class SmarsRobot():
         """
         take a single step forward
         """
-        front_left_leg = self.get_leg('LEFT_FRONT')
-        front_right_leg = self.get_leg('RIGHT_FRONT')
-        back_left_leg = self.get_leg('LEFT_BACK')
-        back_right_leg = self.get_leg('RIGHT_BACK')
+        for leg, foot in zip(self.legs, self.feet):
+            if leg.tick():
+                foot.down()
+                sleep(SLEEP_COUNT)
 
-        foot = self.get_foot('RIGHT_FRONT')
-        foot.up()
-        front_left_leg.body()
-        front_right_leg.stretch()
-        foot.down()
-
-        foot = self.get_foot('LEFT_FRONT')
-        foot.up()
-        front_left_leg.stretch()
-        front_right_leg.body()
-        foot.down()
-        sleep(1)
-
-        foot = self.get_foot('LEFT_BACK')
-        foot.up()
-        back_left_leg.stretch()
-        back_right_leg.body()
-        foot.down()
-
-        foot = self.get_foot('RIGHT_BACK')
-        foot.up()
-        back_left_leg.body()
-        back_right_leg.stretch()
-        foot.down()
-        sleep(1)
+            else:
+                leg.tick()
 
     def walk_backward(self, steps=1):
         """
