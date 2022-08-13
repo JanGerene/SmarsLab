@@ -302,6 +302,12 @@ class SmarsRobot():
             self.get_leg('RIGHT_FRONT').body()
             sleep(SLEEP_LONG)
 
+    def step_forward_phase3(self):
+        self.get_foot('RIGHT_FRONT').down()
+        self.get_leg('LEFT_FRONT').body()
+        self.get_leg('RIGHT_BACK').stretch()
+        self.get_foot('LEFT_BACK').up()
+        sleep(SLEEP_LONG)
     
     def walk_forward(self, steps=1):
         """
@@ -320,11 +326,7 @@ class SmarsRobot():
             self.step_forward_phase1()
             # phase 2
             # phase 3
-            foot_right_front.down()
-            leg_left_front.body()
-            leg_right_back.stretch()
-            foot_left_back.up()
-            sleep(SLEEP_LONG)
+
             # phase 4
             leg_left_back.body()
             sleep(SLEEP_SHORT)
