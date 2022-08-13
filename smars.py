@@ -287,27 +287,6 @@ class SmarsRobot():
             sleep(SLEEP_COUNT)
 
         
-    def step_forward_phase1(self):
-        self.get_foot('RIGHT_BACK').up()
-        sleep(SLEEP_SHORT)
-        self.get_leg('RIGHT_BACK').body()
-        sleep(SLEEP_SHORT)
-        self.get_foot('RIGHT_BACK').down()
-        sleep(SLEEP_LONG)
-
-    
-    def step_forward_phase2(self):
-            self.get_foot('RIGHT_FRONT').up()
-            sleep(SLEEP_SHORT)
-            self.get_leg('RIGHT_FRONT').body()
-            sleep(SLEEP_LONG)
-
-    def step_forward_phase3(self):
-        self.get_foot('RIGHT_FRONT').down()
-        self.get_leg('LEFT_FRONT').body()
-        self.get_leg('RIGHT_BACK').stretch()
-        self.get_foot('LEFT_BACK').up()
-        sleep(SLEEP_LONG)
     
     def walk_forward(self, steps=1):
         """
@@ -322,27 +301,53 @@ class SmarsRobot():
         leg_left_front = self.get_leg('LEFT_FRONT')
         leg_left_back = self.get_leg('LEFT_BACK')
 
-        for _ in range(steps):
-            self.step_forward_phase1()
-            # phase 2
-            # phase 3
+        def step_forward_phase1():
+            foot_right_back.up()
+            sleep(SLEEP_SHORT)
+            leg_right_back.body()
+            sleep(SLEEP_SHORT)
+            foot_right_back.down()
+            sleep(SLEEP_LONG)
 
-            # phase 4
+        def step_forward_phase2():
+            foot_right_front.up()
+            sleep(SLEEP_SHORT)
+            leg_right_front.body()
+            sleep(SLEEP_LONG)
+
+        def step_forward_phase3():
+            foot_right_front.down()
+            leg_left_front.body()
+            leg_right_back.swing()
+            foot_left_back.up()
+            sleep(SLEEP_LONG)
+
+        def step_forward_phase4():
             leg_left_back.body()
             sleep(SLEEP_SHORT)
             foot_left_back.down()
             sleep(SLEEP_LONG)
-            # phase 5
+
+        def step_forward_phase5():
             foot_left_front.up()
             sleep(SLEEP_SHORT)
             leg_left_front.body()
             sleep(SLEEP_LONG)
-            # phase 6
+
+        def step_forward_phase6():
             foot_left_front.down()
             leg_right_front.body()
             leg_left_back.stretch()
             foot_right_back.up()
             sleep(SLEEP_LONG)
+
+        for _ in range(steps):
+            step_forward_phase1()
+            step_forward_phase2()
+            step_forward_phase3()
+            step_forward_phase4()
+            step_forward_phase5()
+            step_forward_phase6()
 
 
     def walk_backward(self, steps=1):
