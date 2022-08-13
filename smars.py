@@ -22,6 +22,8 @@ except (NotImplementedError):
 
 
 SLEEP_COUNT = 0.1  # time between pwm operations
+SLEEP_SHORT = 0.3
+SLEEP_LONG = 0.4
 
 
 try:
@@ -284,13 +286,20 @@ class SmarsRobot():
             foot.down()
             sleep(SLEEP_COUNT)
 
+        
+    def step_forward_phase1(self):
+        self.get_foot('RIGHT_BACK').up()
+        sleep(SLEEP_SHORT)
+        self.get_leg('RIGHT_BACK').body()
+        sleep(SLEEP_SHORT)
+        self.get_foot('RIGHT_BACK').down()
+        sleep(SLEEP_LONG)
+        
     
     def walk_forward(self, steps=1):
         """
         walk forward number of steps.  Default is 1
         """
-        SLEEP_SHORT = 0.3
-        SLEEP_LONG = 0.4
         foot_right_back = self.get_foot('RIGHT_BACK')
         foot_right_front = self.get_foot('RIGHT_FRONT')
         foot_left_back = self.get_foot('LEFT_BACK')
@@ -301,13 +310,7 @@ class SmarsRobot():
         leg_left_back = self.get_leg('LEFT_BACK')
 
         for _ in range(steps):
-            # phase 1
-            foot_right_back.up()
-            sleep(SLEEP_SHORT)
-            leg_right_back.body()
-            sleep(SLEEP_SHORT)
-            foot_right_back.down()
-            sleep(SLEEP_LONG)
+            self.step_forward_phase1()
             # phase 2
             foot_right_front.up()
             sleep(SLEEP_SHORT)
