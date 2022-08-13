@@ -6,6 +6,7 @@ based on Kevin McAleers work
 from re import S
 from time import sleep
 import logging
+from xxlimited import foo
 
 import yaml
 
@@ -89,6 +90,7 @@ class Leg(Limb):
             self._body_angle = self._max_angle
             self._stretch_angle = self._min_angle
             self._swing_angle = (self._max_angle - self._min_angle) / 2
+        self._target_angle = self._body_angle
         self.body()
 
 
@@ -196,6 +198,7 @@ class SmarsRobot():
         for limb in limbs:
             self.legs.append(Leg(name=limb['name'], channel=limb['channel'], min_angle=limb['minangle'], max_angle=limb['maxangle'],invert=limb['invert']))
         logger.debug(f"we have {len(self.legs)} legs and {len(self.feet)} feet")
+        self._current_state = "stopped"
 
     @property
     def telemetry(self):
@@ -286,28 +289,53 @@ class SmarsRobot():
         """
         walk forward number of steps.  Default is 1
         """
-        logger.debug("walking forward")
-
-        self.get_leg('LEFT_FRONT').body()
-        self.get_leg('LEFT_BACK').body()
-        self.get_leg('RIGHT_FRONT').swing()
-        self.get_leg('RIGHT_BACK').swing()
+        SLEEP_SHORT = 0.3
+        SLEEP_LONG = 0.4
+        foot_right_back = self.get_foot('RIGHT_BACK')
+        foot_right_front = self.get_foot('RIGHT_FRONT')
+        foot_left_back = self.get_foot('LEFT_BACK')
+        foot_left_front = self.get_foot('LEFT_FRONT')
+        leg_right_back = self.get_leg('RIGHT_BACK')
+        leg_right_front = self.get_leg('RIGHT_FRONT')
+        leg_left_front = self.get_leg('LEFT_FRONT')
+        leg_left_back = self.get_leg('LEFT_BACK')
 
         for _ in range(steps):
-            self.step_forward()
+            # phase 1
+            foot_right_back.up()
+            sleep(SLEEP_SHORT)
+            leg_right_back.body()
+            sleep(SLEEP_SHORT)
+            foot_right_back.down()
+            sleep(SLEEP_LONG)
+            # phase 2
+            foot_right_front.up()
+            sleep(SLEEP_SHORT)
+            leg_right_front.body()
+            sleep(SLEEP_LONG)
+            # phase 3
+            foot_right_front.down()
+            leg_left_front.body()
+            leg_right_back.stretch()
+            foot_left_back.up()
+            sleep(SLEEP_LONG)
+            # phase 4
+            leg_left_back.body()
+            sleep(SLEEP_SHORT)
+            foot_left_back.down()
+            sleep(SLEEP_LONG)
+            # phase 5
+            foot_left_front.up()
+            sleep(SLEEP_SHORT)
+            leg_left_front.body()
+            sleep(SLEEP_LONG)
+            # phase 6
+            foot_left_front.down()
+            leg_right_front.body()
+            leg_left_back.stretch()
+            foot_right_back.up()
+            sleep(SLEEP_LONG)
 
-
-    def step_forward(self):
-        """
-        take a single step forward
-        """
-        for leg, foot in zip(self.legs, self.feet):
-            if leg.tick():
-                foot.down()
-                sleep(SLEEP_COUNT)
-
-            else:
-                leg.tick()
 
     def walk_backward(self, steps=1):
         """
