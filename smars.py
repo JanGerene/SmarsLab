@@ -3,6 +3,7 @@ provides functions and classes for the SMARS quad robot
 based on Kevin McAleers work 
 """
 
+from math import fabs
 from re import S
 from time import sleep
 import logging
@@ -302,43 +303,48 @@ class SmarsRobot():
         leg_left_back = self.get_leg('LEFT_BACK')
 
         def step_forward_phase1():
-            foot_right_back.up()
-            sleep(SLEEP_SHORT)
+            leg_left_front.swing()
+            foot_left_front.down()
+            leg_left_back.swing()
+            foot_left_back.down()
+            leg_right_front.body()
+            foot_right_front.down()
             leg_right_back.body()
-            sleep(SLEEP_SHORT)
             foot_right_back.down()
             sleep(SLEEP_LONG)
 
         def step_forward_phase2():
             foot_right_front.up()
             sleep(SLEEP_SHORT)
-            leg_right_front.body()
+            leg_right_front.stretch()
             sleep(SLEEP_LONG)
 
         def step_forward_phase3():
-            foot_right_front.down()
             leg_left_front.body()
+            leg_right_front.swing()
             leg_right_back.swing()
-            foot_left_back.up()
             sleep(SLEEP_LONG)
 
         def step_forward_phase4():
+            foot_left_back.up()
             leg_left_back.body()
-            sleep(SLEEP_SHORT)
-            foot_left_back.down()
             sleep(SLEEP_LONG)
 
         def step_forward_phase5():
             foot_left_front.up()
-            sleep(SLEEP_SHORT)
-            leg_left_front.body()
+            leg_left_front.stretch()
             sleep(SLEEP_LONG)
 
         def step_forward_phase6():
-            foot_left_front.down()
+            leg_left_front.swing()
+            leg_left_back.swing()
             leg_right_front.body()
-            leg_left_back.stretch()
+            leg_right_back.stretch()
+            sleep(SLEEP_LONG)
+
+        def step_forward_phase7():
             foot_right_back.up()
+            leg_right_back.body()
             sleep(SLEEP_LONG)
 
         for _ in range(steps):
@@ -348,6 +354,8 @@ class SmarsRobot():
             step_forward_phase4()
             step_forward_phase5()
             step_forward_phase6()
+            step_forward_phase7()
+            
 
 
     def walk_backward(self, steps=1):
