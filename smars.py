@@ -1,22 +1,21 @@
-""" SMARS Python module
+""" 
+SMARS Python module
 provides functions and classes for the SMARS quad robot
 based on Kevin McAleers work 
 """
 
-from math import fabs
-from re import S
-from time import sleep
 import logging
-from xxlimited import foo
+from time import sleep
 
 import yaml
 
 logger = logging.getLogger(__name__)
-from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
+from adafruit_pca9685 import PCA9685
+
 try:
-    from board import SCL, SDA
     import busio
+    from board import SCL, SDA
 except (NotImplementedError):
     logger.warning("circuitpython not supported on this platform")
     raise
@@ -304,12 +303,19 @@ class SmarsRobot():
 
         def step_forward_phase1():
             leg_left_front.swing()
+            sleep(SLEEP_SHORT)
             foot_left_front.down()
+            sleep(SLEEP_SHORT)
             leg_left_back.swing()
+            sleep(SLEEP_SHORT)
             foot_left_back.down()
+            sleep(SLEEP_SHORT)
             leg_right_front.body()
+            sleep(SLEEP_SHORT)
             foot_right_front.down()
+            sleep(SLEEP_SHORT)
             leg_right_back.body()
+            sleep(SLEEP_SHORT)
             foot_right_back.down()
             sleep(SLEEP_LONG)
 
@@ -327,11 +333,13 @@ class SmarsRobot():
 
         def step_forward_phase4():
             foot_left_back.up()
+            sleep(SLEEP_SHORT)
             leg_left_back.body()
             sleep(SLEEP_LONG)
 
         def step_forward_phase5():
             foot_left_front.up()
+            sleep(SLEEP_SHORT)
             leg_left_front.stretch()
             sleep(SLEEP_LONG)
 
@@ -344,6 +352,7 @@ class SmarsRobot():
 
         def step_forward_phase7():
             foot_right_back.up()
+            sleep(SLEEP_SHORT)
             leg_right_back.body()
             sleep(SLEEP_LONG)
 
@@ -365,32 +374,6 @@ class SmarsRobot():
         """
         logger.debug("walking backward")
 
-        self.get_leg('LEFT_FRONT').body()
-        self.get_leg('LEFT_BACK').body()
-        self.get_leg('RIGHT_FRONT').swing()
-        self.get_leg('RIGHT_BACK').swing()
-        self.stand()
-
-        for _ in range(steps):
-            for leg, foot in zip(self.legs, self.feet):
-                if not leg.untick():
-                    leg.untick()
-                else:
-                    foot.up()
-                    sleep(SLEEP_COUNT)
-                    if not leg.invert:
-                        if leg.name == "LEFT_BACK":
-                            leg.stretch()
-                        else:
-                            leg.body()
-                    else:
-                        if leg.name == "LEFT_FRONT":
-                            leg.body()
-                        else:
-                            leg.stretch()
-                    sleep(SLEEP_COUNT)
-                    foot.down()
-                    sleep(SLEEP_COUNT)
 
 
     def turn_left(self):
