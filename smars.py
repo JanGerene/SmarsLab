@@ -358,12 +358,12 @@ class SmarsRobot():
 
         for _ in range(steps):
             step_forward_phase1()
-            step_forward_phase2()
-            step_forward_phase3()
-            step_forward_phase4()
-            step_forward_phase5()
-            step_forward_phase6()
-            step_forward_phase7()
+            # step_forward_phase2()
+            # step_forward_phase3()
+            # step_forward_phase4()
+            # step_forward_phase5()
+            # step_forward_phase6()
+            # step_forward_phase7()
             
 
 
