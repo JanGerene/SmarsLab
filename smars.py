@@ -22,8 +22,8 @@ except (NotImplementedError):
 
 
 SLEEP_COUNT = 0.1  # time between pwm operations
-SLEEP_SHORT = 0.3
-SLEEP_LONG = 0.4
+SLEEP_SHORT = 0.1
+SLEEP_LONG = 0.3
 
 
 try:
@@ -372,9 +372,9 @@ class SmarsRobot():
             step_forward_phase5()
             step_forward_phase6()
             step_forward_phase7()
+        self.swing()
+    
             
-
-
     def walk_backward(self, steps=1):
         """
         walk backward number of steps.
