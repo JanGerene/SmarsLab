@@ -324,7 +324,7 @@ class SmarsRobot():
             sleep(SLEEP_SHORT)
             leg_right_front.stretch()
             sleep(SLEEP_SHORT)
-            foot_left_front.down()
+            foot_right_front.down()
             sleep(SLEEP_LONG)
 
         def step_forward_phase3():
