@@ -190,7 +190,7 @@ class SmarsRobot():
         for leg in self.legs:
             leg.body()
         for foot in self.feet:
-            foot.body()
+            foot.down()
 
 
     def sit(self):
