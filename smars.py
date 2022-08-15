@@ -23,7 +23,7 @@ except (NotImplementedError):
 
 SLEEP_COUNT = 0.1  # time between pwm operations
 SLEEP_SHORT = 0.1
-SLEEP_LONG = 0.3
+SLEEP_LONG = 0.1
 
 
 try:
@@ -127,39 +127,6 @@ class Leg(Limb):
         sleep(SLEEP_COUNT)
 
 
-    def tick(self):
-        """
-        each tick received changes the current angle, unless limit is reached which returns true
-        """
-        if self.name in ['LEFT_FRONT', 'LEFT_BACK']:
-            self._current_angle += 2
-            if self._current_angle <= self._max_angle:
-                self.angle = self._current_angle
-                return False
-            else:
-                return True
-        elif self.name in ['RIGHT_FRONT', 'RIGHT_BACK']:
-            self._current_angle -= 2
-            if self._current_angle >=  self._min_angle:
-                self.angle = self._current_angle
-                return False
-            else:
-                return True
-
-
-    def untick(self):
-        if self.name in ['RIGHT_BACK', 'RIGHT_FRONT']:
-            self._current_angle += 2
-            if self._current_angle > self._max_angle:
-                return True
-        elif self.name in ['LEFT_BACK', 'LEFT_FRONT']:
-            self._current_angle -= 2
-            if self._current_angle < self._min_angle:
-                return True
-        self.angle = self._current_angle
-        return False
-       
-
 class Foot(Limb):
     def __init__(self, name: str, channel: int, min_angle: int, max_angle: int, invert: bool):
         super().__init__(name, channel, min_angle, max_angle, invert)
@@ -202,20 +169,6 @@ class SmarsRobot():
         logger.debug(f"we have {len(self.legs)} legs and {len(self.feet)} feet")
         self._current_state = "stopped"
 
-    @property
-    def telemetry(self):
-        """
-        returns a list of measurements
-        """
-        _telemetry = []
-        _telemetry.append(['legs', ''])
-        for limb in self.legs:
-            _telemetry.append([limb.name, limb.angle])
-        _telemetry.append(['feet', ''])
-        for limb in self.feet:
-            _telemetry.append([limb.name, limb.angle])
-        return _telemetry
-        
         
     def get_leg(self, name:str)->Leg:
         for leg in self.legs:
@@ -303,19 +256,15 @@ class SmarsRobot():
 
         def step_forward_phase1():
             leg_left_front.swing()
-            sleep(SLEEP_SHORT)
             foot_left_front.down()
             sleep(SLEEP_SHORT)
             leg_left_back.swing()
-            sleep(SLEEP_SHORT)
             foot_left_back.down()
             sleep(SLEEP_SHORT)
             leg_right_front.body()
-            sleep(SLEEP_SHORT)
             foot_right_front.down()
             sleep(SLEEP_SHORT)
             leg_right_back.body()
-            sleep(SLEEP_SHORT)
             foot_right_back.down()
             sleep(SLEEP_LONG)
 
@@ -323,7 +272,6 @@ class SmarsRobot():
             foot_right_front.up()
             sleep(SLEEP_SHORT)
             leg_right_front.stretch()
-            sleep(SLEEP_SHORT)
             foot_right_front.down()
             sleep(SLEEP_LONG)
 
@@ -337,7 +285,6 @@ class SmarsRobot():
             foot_left_back.up()
             sleep(SLEEP_SHORT)
             leg_left_back.body()
-            sleep(SLEEP_SHORT)
             foot_left_back.down()
             sleep(SLEEP_LONG)
 
@@ -345,7 +292,6 @@ class SmarsRobot():
             foot_left_front.up()
             sleep(SLEEP_SHORT)
             leg_left_front.stretch()
-            sleep(SLEEP_SHORT)
             foot_left_front.down()
             sleep(SLEEP_LONG)
 
@@ -360,7 +306,6 @@ class SmarsRobot():
             foot_right_back.up()
             sleep(SLEEP_SHORT)
             leg_right_back.body()
-            sleep(SLEEP_SHORT)
             foot_right_back.down()
             sleep(SLEEP_LONG)
 
@@ -382,6 +327,75 @@ class SmarsRobot():
         """
         logger.debug("walking backward")
 
+        foot_right_back = self.get_foot('RIGHT_BACK')
+        foot_right_front = self.get_foot('RIGHT_FRONT')
+        foot_left_back = self.get_foot('LEFT_BACK')
+        foot_left_front = self.get_foot('LEFT_FRONT')
+        leg_right_back = self.get_leg('RIGHT_BACK')
+        leg_right_front = self.get_leg('RIGHT_FRONT')
+        leg_left_front = self.get_leg('LEFT_FRONT')
+        leg_left_back = self.get_leg('LEFT_BACK')
+
+        def step_backward_phase1():
+            leg_left_front.body()
+            foot_left_front.down()
+            sleep(SLEEP_SHORT)
+            leg_left_back.body()
+            foot_left_back.down()
+            sleep(SLEEP_SHORT)
+            leg_right_front.swing()
+            foot_right_front.down()
+            sleep(SLEEP_SHORT)
+            leg_right_back.swing()
+            foot_right_back.down()
+            sleep(SLEEP_LONG)
+            
+        def step_backward_phase2():
+            foot_left_back.up()
+            sleep(SLEEP_SHORT)
+            leg_left_back.swing()
+            foot_left_back.down()
+            sleep(SLEEP_SHORT)
+
+        def step_backward_phase3():
+            leg_left_front.swing()
+            leg_right_front.swing()
+            leg_right_back.body()
+
+        def step_backward_phase4():
+            foot_right_front.up()
+            sleep(SLEEP_SHORT)
+            leg_right_front.body()
+            foot_right_front.down()
+            sleep(SLEEP_SHORT)
+
+        def step_backward_phase5():
+            foot_right_back.up()
+            sleep(SLEEP_SHORT)
+            leg_right_back.swing()
+            foot_right_back.down()
+            sleep(SLEEP_SHORT)
+
+        def step_backward_phase6():
+            leg_left_front.swing()
+            leg_right_front.swing()
+            leg_right_back.body()
+
+        def step_backward_phase7():
+            foot_left_front.up()
+            sleep(SLEEP_SHORT)
+            leg_left_front.body()
+            foot_left_front.down()
+            sleep(SLEEP_SHORT)
+
+        for _ in range(steps):
+            step_backward_phase1()
+            step_backward_phase2()
+            step_backward_phase3()
+            step_backward_phase4()
+            step_backward_phase5()
+            step_backward_phase6()
+            step_backward_phase7()
 
 
     def turn_left(self):
@@ -412,7 +426,7 @@ class SmarsRobot():
         """
         logger.debug("wiggling")
 
-        self.sit()
+        self.stand()
         self.get_foot("LEFT_BACK").down()
         self.get_foot('RIGHT_BACK').down()
         sleep(SLEEP_COUNT * 10)
@@ -426,7 +440,7 @@ class SmarsRobot():
             RIGHT_BACK.body()
             sleep(SLEEP_COUNT * 5)
         sleep(SLEEP_COUNT * 10)
-        self.stand()
+        self.sit()
 
     
     def clap(self, count: int= None):

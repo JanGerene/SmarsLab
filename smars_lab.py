@@ -22,35 +22,13 @@ import smars as SMARS
 logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
 
-
-class CommandHistory:
-    _history = []
-
-    @property
-    def history(self):
-        return self._history
-
-    def append(self, command: str):
-        self._history.append(command)
-
-    def clear(self):
-        self._history = []
-
-    def get_last_ten(self)->list:
-        return self._history[-10:]
-
-
 APP = Flask(__name__)
 SMARS = SmarsRobot()
-telemetry = []
-command_history = CommandHistory()
 
 
 @APP.route("/")
 def index():
     """ render the main index template """
-    global telemetry
-    telemetry = SMARS.telemetry
     return render_template("index.html")
 
 
@@ -60,24 +38,11 @@ def about():
     return render_template("about.html")
 
 
-@APP.route('/metricsapi', methods=['GET', 'POST'])
-def metricsapi():
-    """ metrics api """
-    if request.method == 'POST':
-        metric = request.values.get('metric')
-        try:
-            if metric == "telemetry":
-                return jsonify(SMARS.telemetry)
-        except (TypeError):
-            logger.debug("jsonify telemetry failed")
-
-
 @APP.route("/controlapi", methods=['GET', 'POST'])
 def controlapi():
     """ control api """
     if request.method == 'POST':
         command = request.values.get('command')
-        command_history.append(command)
         if command == "up":
             SMARS.walk_forward(steps=10)
         elif command == "down":
@@ -94,57 +59,9 @@ def controlapi():
             SMARS.wiggle(1)
         elif command == "clap":
             SMARS.clap(1)
-        elif command == "clear_history":
-            command_history.clear()
-        elif command == "full_history":
-            try:
-                return jsonify(command_history.history)
-            except (TypeError):
-                logger.error("could not jsonify full history")
         elif command == "home":
             SMARS.default()
-
     return "Ok"
-
-
-@APP.route('/background_process')
-def background_process():
-    """ return dynamic data to JQuery """
-    try:
-        lang = request.args.get('proglang')
-        if str(lang).lower() == 'python':
-            return jsonify(result='you are wise')
-        else:
-            return jsonify(result="try again")
-    except Exception as error:
-        logger.error(error)    
-    return jsonify(result="There was an error")
-
-
-@APP.route('/telemetry')
-def get_telemetry():
-    """ return the current telemetry in JSON format """
-    return jsonify(telemetry)
-
-
-@APP.route('/commandhistory', methods=['POST', 'GET'])
-def get_command_history():
-    """ returns the command history """
-    if request.method == 'POST':
-        listtype = request.values.get('listtype')
-        if listtype == "top10":
-            try:
-                return jsonify(command_history.get_last_ten())
-            except (TypeError) as e:
-                logger.debug(e)
-                logger.debug("could not jsonify last 10 commands ")
-        else:
-            try:
-                return jsonify(command_history.history)
-            except (TypeError) as e:
-                logger.debug(e)
-                logger.debug("could not jsonify command history " + e)
-        return jsonify("command history failed")
 
 
 def main():
