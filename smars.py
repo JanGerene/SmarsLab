@@ -188,9 +188,9 @@ class SmarsRobot():
         """
         logger.debug("default position")
         for leg in self.legs:
-            leg.default()
+            leg.body()
         for foot in self.feet:
-            foot.default()
+            foot.body()
 
 
     def sit(self):
@@ -396,6 +396,7 @@ class SmarsRobot():
             step_backward_phase5()
             step_backward_phase6()
             step_backward_phase7()
+        self.swing()
 
 
     def turn_left(self):
@@ -426,10 +427,10 @@ class SmarsRobot():
         """
         logger.debug("wiggling")
 
-        self.stand()
-        self.get_foot("LEFT_BACK").down()
-        self.get_foot('RIGHT_BACK').down()
-        sleep(SLEEP_COUNT * 10)
+        self.sit()
+        self.get_foot("LEFT_BACK").up()
+        self.get_foot('RIGHT_BACK').up()
+        sleep(SLEEP_COUNT)
         LEFT_BACK = self.get_leg('LEFT_BACK')
         RIGHT_BACK = self.get_leg('RIGHT_BACK')
         for _ in range(count):
@@ -439,8 +440,7 @@ class SmarsRobot():
             LEFT_BACK.stretch()
             RIGHT_BACK.body()
             sleep(SLEEP_COUNT * 5)
-        sleep(SLEEP_COUNT * 10)
-        self.sit()
+        self.stand()
 
     
     def clap(self, count: int= None):
@@ -452,7 +452,6 @@ class SmarsRobot():
         if count is None:
             count = 1
         self.sit()
-
         left_leg = self.get_leg("LEFT_FRONT")
         right_leg = self.get_leg("RIGHT_FRONT")
         for _ in range(count):
@@ -462,7 +461,6 @@ class SmarsRobot():
             left_leg.stretch()
             right_leg.stretch()
             sleep(SLEEP_COUNT * 2)
-
         self.stand()
 
 
