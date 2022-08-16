@@ -1,0 +1,9 @@
+[Unit]
+Description=start the smars_lab server as a service
+After=multi-user.target
+
+[Service]
+User=jan
+Group=jan
+Type=simple
+ExecStart=/bin/sh /home/jan/smarslab/smars_lab.sh
