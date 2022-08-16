@@ -7,3 +7,6 @@ User=jan
 Group=jan
 Type=simple
 ExecStart=/bin/sh /home/jan/smarslab/smars_lab.sh
+
+[Install]
+WantedBy=multi-user.target
