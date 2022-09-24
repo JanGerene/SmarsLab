@@ -7,3 +7,5 @@ This is a reworked version of [Kevin McAleer SMARSLab project](https://github.co
 * smars library as a module in the project
 * setup page removed 
 * use of yaml file for configuration
+
+contact the server by pointing browser to http://"ip adress smars":5000
