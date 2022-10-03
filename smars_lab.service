@@ -6,7 +6,7 @@ After=multi-user.target
 User=jan
 Group=jan
 Type=simple
-ExecStart=/usr/bin/bash /home/jan/smarslab/smars_lab.sh
+ExecStart=/usr/bin/bash /home/jan/Smarslab/smars_lab.sh
 
 [Install]
 WantedBy=multi-user.target
