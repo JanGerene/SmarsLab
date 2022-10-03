@@ -8,7 +8,7 @@ This is a reworked version of [Kevin McAleer SMARSLab project](https://github.co
 * setup page removed 
 * use of yaml file for configuration
 
-## installation
+## Installation
 * ssh into Raspberry Pi zero
 * git clone https://github.com/JanGerene/SmarsLab
 * cd SmarsLab
@@ -19,5 +19,7 @@ This is a reworked version of [Kevin McAleer SMARSLab project](https://github.co
 * sudo systemctl enable smars_lab
 * sudo systemctl start smars_lab
 
+Make sure that I2C is enabled on the Raspberry Pi. (raspi-config -> interfaces)
 
+## Usage
 contact the server by pointing browser to http://"ip adress smars":5000
