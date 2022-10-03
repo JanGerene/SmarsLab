@@ -19,4 +19,5 @@ This is a reworked version of [Kevin McAleer SMARSLab project](https://github.co
 * sudo systemctl enable smars_lab
 * sudo systemctl start smars_lab
 
+
 contact the server by pointing browser to http://"ip adress smars":5000
